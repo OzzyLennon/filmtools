@@ -1,246 +1,643 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>胶片摄影工具箱</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for a nice look -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #1a1a2e; transition: background-color 0.2s ease-in-out; }
-        .card { background-color: #16213e; }
-        .result-card { background-color: #0f3460; }
-        .timer-card { background-color: #e0e0e0; color: #16213e; }
-        .app-title { color: #e0e0e0; }
-        .subtitle { color: #b39ddb; }
-        .label, .result-label { color: #e0e0e0; }
-        .result-text { color: #ffffff; }
-        .input, .select { background-color: #1a1a2e; border-color: #4d4d7a; color: #ffffff; }
-        .button { background-color: #0f3460; transition: background-color 0.2s; }
-        .button:hover { background-color: #164073; }
-        .button-secondary { background-color: #4a4a8a; }
-        .button-secondary:hover { background-color: #6a6aac; }
-        .button-danger { background-color: #c53030; }
-        .button-danger:hover { background-color: #9b2c2c; }
-        .error-message { background-color: #e53e3e; color: #ffffff; }
-        .flashing { background-color: #f7b733 !important; }
-        .tab-button { background-color: #16213e; color: #b39ddb; }
-        .tab-button.active { background-color: #0f3460; color: #ffffff; }
-        .modal-overlay { background-color: rgba(0,0,0,0.7); z-index: 50; }
+        :root {
+            --transition-speed: 0.2s;
+        }
+
+        /* --- 暗色主题 (Cyberpunk) --- */
+        [data-theme="dark"] {
+            --bg-primary: #0D1117; /* 午夜蓝 */
+            --bg-secondary: #161B22; /* 石墨灰 */
+            --text-primary: #E6EDF3; /* 灰白 */
+            --text-secondary: #8B949E; /* 中灰 */
+            --accent-primary: #33D7FF; /* 霓虹青 */
+            --accent-primary-text: #0D1117; /* 青色上的文字 */
+            --accent-secondary: #FF00E6; /* 品红 */
+            --border-color: #30363D;
+            --error-color: #F85149;
+            --success-color: #2DA44E;
+        }
+
+        /* --- 亮色主题 (Tech White) --- */
+        [data-theme="light"] {
+            --bg-primary: #ffffff; /* 纯白 */
+            --bg-secondary: #f6f8fa; /* 浅灰 */
+            --text-primary: #24292f; /* 深黑 */
+            --text-secondary: #57606a; /* 中灰 */
+            --accent-primary: #0969da; /* 科技蓝 */
+            --accent-primary-text: #ffffff; /* 蓝色上的文字 */
+            --accent-secondary: #8250df; /* 优雅紫 */
+            --border-color: #d0d7de;
+            --error-color: #d73a49;
+            --success-color: #2DA44E;
+        }
+
+        body {
+            font-family: 'Inter', 'Roboto', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+        .app-title { color: var(--text-primary); font-weight: 900; transition: color var(--transition-speed); }
+        .subtitle { color: var(--accent-secondary); transition: color var(--transition-speed); }
+        .label { color: var(--text-secondary); font-weight: 500; transition: color var(--transition-speed); }
+        .result-label { color: var(--text-secondary); transition: color var(--transition-speed); }
+        .result-text { color: var(--accent-primary); font-weight: 700; transition: color var(--transition-speed); }
+
+        .input, .select {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 0.375rem; /* 6px */
+            box-sizing: border-box;
+            width: 100%;
+            font-size: 1rem;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
+        }
+        .input:focus, .select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+        }
+
+        .select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='%238B949E'%3E%3Cpath d='M7 10 L12 15 L17 10 Z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1em 1em;
+            padding-right: 2.5rem !important;
+        }
+
+        .timer-card { background-color: var(--bg-secondary); color: var(--text-primary); border-radius: 0.5rem; transition: background-color var(--transition-speed), color var(--transition-speed); }
+        .timer-card.finished { background-color: var(--success-color) !important; color: white; }
+        .error-message { background-color: var(--error-color); color: white; padding: 1rem; border-radius: 0.5rem; }
+        .flashing { animation: flash 1s infinite; }
+        @keyframes flash { 50% { background-color: #F85149; } }
+
+        .tab-button {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: color var(--transition-speed), border-color var(--transition-speed);
+            border-radius: 0;
+            text-align: center;
+        }
+        .tab-button.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .modal-overlay { background-color: color-mix(in srgb, var(--bg-primary) 80%, transparent); z-index: 50; }
+        .radio-group label {
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-secondary) !important;
+            background-color: var(--bg-primary);
+            transition: all var(--transition-speed);
+        }
+        .radio-group input:checked + label {
+            background-color: var(--accent-primary) !important;
+            color: var(--accent-primary-text) !important;
+            border-color: var(--accent-primary) !important;
+            font-weight: 700;
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background-color: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--border-color); transition: background-color var(--transition-speed), border-color var(--transition-speed); }
+        .result-card, .info-card { background-color: var(--bg-secondary); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); transition: background-color var(--transition-speed), border-color var(--transition-speed); }
+
+        /* --- 纯CSS波纹效果 --- */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s, transform 0.1s;
+        }
+        .btn-ripple:active {
+            transform: scale(0.98);
+        }
+        .btn-ripple .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: color-mix(in srgb, var(--text-primary) 60%, transparent);
+            width: 100px;
+            height: 100px;
+            margin-top: -50px;
+            margin-left: -50px;
+            animation: ripple-animation 0.8s;
+            opacity: 0;
+        }
+        @keyframes ripple-animation {
+            from { transform: scale(1); opacity: 0.4; }
+            to { transform: scale(10); opacity: 0; }
+        }
     </style>
 </head>
 <body class="min-h-screen">
 
 <div class="w-full max-w-md mx-auto p-4 pt-8">
-    <!-- Header -->
-    <!-- UPDATED: Restructured header for robust layout -->
-    <header class="mb-4">
-        <div class="flex justify-end">
-            <button id="lang-switcher" class="bg-gray-700 text-white text-sm font-bold py-1 px-3 rounded-md mb-2"></button>
+    <header class="mb-8">
+        <div class="flex justify-end items-center space-x-2">
+            <button id="theme-switcher" class="btn-ripple p-2 rounded-full" style="color: var(--text-secondary);"></button>
+            <button id="lang-switcher" class="btn-ripple border text-sm font-bold py-1 px-3 rounded-md" style="color: var(--text-secondary); border-color: var(--border-color);" data-lang-key="langSwitch"></button>
         </div>
-        <div class="text-center">
-            <h1 class="text-4xl font-bold app-title" data-lang-key="title"></h1>
-            <p class="text-lg subtitle mt-2" data-lang-key="subtitle"></p>
+        <div class="text-center mt-2">
+            <h1 class="text-4xl font-black app-title" data-lang-key="title"></h1>
+            <p class="text-lg subtitle mt-2 font-semibold" data-lang-key="subtitle"></p>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <div>
-        <!-- Tab Navigation -->
-        <div class="flex mb-4 rounded-lg overflow-hidden">
-            <button id="tab-reciprocity" class="tab-button w-1/2 p-3 font-bold active" data-lang-key="tabReciprocity"></button>
-            <button id="tab-hyperfocal" class="tab-button w-1/2 p-3 font-bold" data-lang-key="tabHyperfocal"></button>
+    <div id="main-content">
+        <div class="flex mb-4" style="border-bottom: 1px solid var(--border-color);">
+            <button id="tab-reciprocity" class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
+            <button id="tab-dof" class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
+            <button id="tab-flash" class="tab-button grow p-3 font-bold" data-lang-key="tabFlash"></button>
         </div>
 
-        <!-- Reciprocity Calculator Panel -->
         <div id="panel-reciprocity">
-            <main id="calculator-card" class="card rounded-2xl p-6 transition-opacity duration-300">
-                <div class="mb-5"><label for="film-select" class="block mb-2 text-md font-medium label" data-lang-key="labelFilm"></label><select id="film-select" class="select border text-sm rounded-lg block w-full p-2.5"></select></div>
-                <div id="delete-film-area" class="hidden mb-5 text-right"><button id="delete-film-btn" class="text-red-400 text-sm hover:text-red-200" data-lang-key="deleteThisFilm"></button></div>
-                <div id="custom-factor-group" class="mb-5 hidden"><label for="custom-factor" class="block mb-2 text-md font-medium label" data-lang-key="labelCustomFactor"></label><div class="flex space-x-2"><input type="number" id="custom-factor" class="input border text-sm rounded-lg block w-full p-2.5" data-lang-placeholder="placeholderPValue"><button id="save-custom-btn" class="button-secondary text-white rounded-lg px-4" data-lang-key="btnSave"></button></div></div>
-                <div class="mb-5"><label for="nd-filter-select" class="block mb-2 text-md font-medium label" data-lang-key="labelND"></label><select id="nd-filter-select" class="select border text-sm rounded-lg block w-full p-2.5"></select></div>
-                <div class="mb-5"><label class="block mb-2 text-md font-medium label" data-lang-key="labelBellows"></label><div class="flex items-center space-x-2"><input type="number" id="focal-length" class="input border text-sm rounded-lg block w-full p-2.5 text-center" data-lang-placeholder="placeholderFocalLength"><span class="text-white text-lg">mm</span><input type="number" id="bellows-extension" class="input border text-sm rounded-lg block w-full p-2.5 text-center" data-lang-placeholder="placeholderBellows"><span class="text-white text-lg">mm</span></div></div>
-                <div class="mb-5"><label class="block mb-2 text-md font-medium label" data-lang-key="labelMeteredTime"></label><div class="flex items-center space-x-2"><input type="number" id="metered-time-min" class="input border text-sm rounded-lg block w-full p-2.5 text-center" placeholder="0"><span class="text-white text-lg" data-lang-key="unitMin"></span><input type="number" id="metered-time-sec" class="input border text-sm rounded-lg block w-full p-2.5 text-center" placeholder="30"><span class="text-white text-lg" data-lang-key="unitSec"></span></div></div>
-                <button id="calculate-btn" class="button text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnCalculate"></button>
+            <main class="card p-6 space-y-5">
+                <div><label for="film-select" class="block mb-1 text-md label" data-lang-key="labelFilm"></label><select id="film-select" class="select text-sm"></select></div>
+                <div id="delete-film-area" class="hidden text-right">
+                    <button id="delete-film-btn" class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold" data-lang-key="deleteThisFilm"></button>
+                </div>
+
+                <div id="custom-factor-group" class="hidden space-y-2">
+                    <label for="custom-factor" class="block text-md label" data-lang-key="labelCustomFactor"></label>
+                    <input type="text" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
+                    <div class="text-right">
+                        <button id="save-custom-btn" class="btn-ripple font-bold rounded-md px-4 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnSave"></button>
+                    </div>
+                </div>
+
+                <div><label for="nd-filter-select" class="block mb-1 text-md label" data-lang-key="labelND"></label><select id="nd-filter-select" class="select text-sm"></select></div>
+
+                <div class="grid grid-cols-[1fr_auto_1fr_auto] gap-x-3 items-center" style="row-gap: 1rem;">
+                    <!-- Row 1: Bellows -->
+                    <label class="label col-span-4" data-lang-key="labelBellows"></label>
+                    <input type="text" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength">
+                    <span class="text-gray-400">mm</span>
+                    <input type="text" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows">
+                    <span class="text-gray-400">mm</span>
+
+                    <!-- Row 2: Metered Time -->
+                    <label class="label col-span-4" data-lang-key="labelMeteredTime"></label>
+                    <input type="text" id="metered-time-min" class="input text-center" placeholder="0">
+                    <span class="text-gray-400" data-lang-key="unitMin"></span>
+                    <input type="text" id="metered-time-sec" class="input text-center" placeholder="30">
+                    <span class="text-gray-400" data-lang-key="unitSec"></span>
+                </div>
+
+                <div><label for="shutter-speed-select" class="block mb-1 text-md label" data-lang-key="labelShutterSpeed"></label><select id="shutter-speed-select" class="select text-sm"></select></div>
+
+                <button id="calculate-btn" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculate"></button>
             </main>
             <div id="message-area" class="mt-6"></div>
         </div>
 
-        <!-- Hyperfocal Calculator Panel -->
-        <div id="panel-hyperfocal" class="hidden">
-            <main class="card rounded-2xl p-6">
-                <div class="mb-5"><label for="hf-format" class="block mb-2 text-md font-medium label" data-lang-key="labelFormat"></label><select id="hf-format" class="select border text-sm rounded-lg block w-full p-2.5"></select></div>
-                <div class="mb-5"><label for="hf-focal-length" class="block mb-2 text-md font-medium label" data-lang-key="labelHfFocalLength"></label><input type="number" id="hf-focal-length" class="input border text-sm rounded-lg block w-full p-2.5" data-lang-placeholder="placeholderHfFocalLength"></div>
-                <div class="mb-5"><label for="hf-aperture" class="block mb-2 text-md font-medium label" data-lang-key="labelHfAperture"></label><input type="number" id="hf-aperture" class="input border text-sm rounded-lg block w-full p-2.5" data-lang-placeholder="placeholderHfAperture"></div>
-                <button id="calculate-hf-btn" class="button text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnCalculateHf"></button>
+        <div id="panel-dof" class="hidden">
+            <main class="card p-6 space-y-5">
+                <div><label for="dof-format" class="block mb-1 text-md label" data-lang-key="labelFormat"></label><select id="dof-format" class="select text-sm"></select></div>
+                <div>
+                    <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label>
+                    <input type="text" id="dof-focal-length" class="input" data-lang-placeholder="placeholderHfFocalLength">
+                </div>
+                <div>
+                    <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label>
+                    <input type="text" id="dof-aperture" class="input" data-lang-placeholder="placeholderHfAperture">
+                </div>
+                <div>
+                    <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label>
+                    <input type="text" id="dof-distance" class="input" data-lang-placeholder="placeholderDistance">
+                </div>
+                <button id="calculate-dof-btn" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculateDof"></button>
             </main>
-            <div id="hf-message-area" class="mt-6"></div>
+            <div id="dof-message-area" class="mt-6"></div>
+        </div>
+
+        <div id="panel-flash" class="hidden">
+            <main class="card p-6 space-y-5">
+                <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label><div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio" id="calc-aperture" name="flash-mode" value="aperture" class="hidden" checked><label for="calc-aperture" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md cursor-pointer" data-lang-key="calcModeAperture"></label><input type="radio" id="calc-distance" name="flash-mode" value="distance" class="hidden"><label for="calc-distance" class="w-full text-center px-4 py-2 text-sm font-medium border-y cursor-pointer" data-lang-key="calcModeDistance"></label><input type="radio" id="calc-power" name="flash-mode" value="power" class="hidden"><label for="calc-power" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md cursor-pointer" data-lang-key="calcModePower"></label></div></div>
+                <div>
+                    <label for="flash-gn" class="block mb-1 text-md label" data-lang-key="labelGuideNumber"></label>
+                    <input type="text" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
+                </div>
+                <div>
+                    <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label>
+                    <input type="text" id="flash-iso" class="input" value="100">
+                </div>
+                <div><label for="flash-modifier" class="block mb-1 text-md label" data-lang-key="labelModifier"></label><select id="flash-modifier" class="select text-sm"></select></div>
+
+                <div id="flash-aperture-group">
+                    <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label>
+                    <input type="text" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture">
+                </div>
+                <div id="flash-distance-group">
+                    <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label>
+                    <input type="text" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance">
+                </div>
+                <div id="flash-power-group">
+                    <label for="flash-power" class="block mb-1 text-md label" data-lang-key="labelFlashPower"></label>
+                    <select id="flash-power" class="select text-sm"></select>
+                </div>
+
+                <button id="calculate-flash-btn" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnFlashCalculate"></button>
+            </main>
+            <div id="flash-message-area" class="mt-6"></div>
         </div>
     </div>
 
-    <!-- Shared Modals & Timer -->
-    <div id="timer-card" class="hidden text-center p-6 rounded-2xl timer-card"><h2 id="timer-display" class="text-6xl font-bold mb-6">00:00</h2><button id="stop-timer-btn" class="button-secondary text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnStopTimer"></button></div>
-    <div id="save-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-4"><div class="card rounded-2xl p-6 w-full max-w-sm"><h3 class="text-xl font-bold text-white mb-4" data-lang-key="modalSaveTitle"></h3><label for="custom-film-name" class="block mb-2 text-md font-medium label" data-lang-key="modalSaveLabel"></label><input type="text" id="custom-film-name" class="input border text-sm rounded-lg block w-full p-2.5" data-lang-placeholder="modalSavePlaceholder"><div class="flex justify-end space-x-4 mt-6"><button id="cancel-save-btn" class="button-secondary text-white font-bold rounded-lg px-5 py-2" data-lang-key="btnCancel"></button><button id="confirm-save-btn" class="button text-white font-bold rounded-lg px-5 py-2" data-lang-key="btnConfirmSave"></button></div></div></div>
-    <div id="delete-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-4"><div class="card rounded-2xl p-6 w-full max-w-sm"><h3 class="text-xl font-bold text-white mb-4" data-lang-key="modalDeleteTitle"></h3><p id="delete-confirm-text" class="text-white mb-6"></p><div class="flex justify-end space-x-4"><button id="cancel-delete-btn" class="button-secondary text-white font-bold rounded-lg px-5 py-2" data-lang-key="btnCancel"></button><button id="confirm-delete-btn" class="button-danger text-white font-bold rounded-lg px-5 py-2" data-lang-key="btnConfirmDelete"></button></div></div></div>
+    <div id="timer-card" class="hidden text-center p-6 timer-card">
+        <h2 id="timer-display" class="text-6xl font-bold mb-6">00:00</h2>
+        <button id="stop-timer-btn" class="bg-red-600 text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnStopTimer"></button>
+    </div>
+    <div id="save-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-4">
+        <div class="card p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4" data-lang-key="modalSaveTitle"></h3>
+            <label for="custom-film-name" class="block mb-1 text-md label" data-lang-key="modalSaveLabel"></label>
+            <input type="text" id="custom-film-name" class="input" data-lang-placeholder="modalSavePlaceholder">
+            <div class="flex justify-end space-x-4 mt-6">
+                <button id="cancel-save-btn" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnCancel"></button>
+                <button id="confirm-save-btn" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnConfirmSave"></button>
+            </div>
+        </div>
+    </div>
+    <div id="delete-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center p-4">
+        <div class="card p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold mb-4" data-lang-key="modalDeleteTitle"></h3>
+            <p id="delete-confirm-text" class="mb-6"></p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-delete-btn" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnConfirmDelete"></button>
+                <button id="confirm-delete-btn" class="btn-ripple text-white font-bold rounded-lg px-5 py-2" style="background-color: var(--error-color);" data-lang-key="btnConfirmDelete"></button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    // --- TRANSLATION OBJECT ---
-    const translations = {
-        en: {
-            title: "Film Photography Toolkit", subtitle: "Precise calculation for your creation", langSwitch: "中", tabReciprocity: "Reciprocity", tabHyperfocal: "Hyperfocal",
-            labelFilm: "1. Select Film", customFilmOption: "Custom Film...", deleteThisFilm: "Delete this film", labelCustomFactor: "Custom Reciprocity Factor (p)", btnSave: "Save",
-            labelND: "2. Select ND Filter (Optional)", labelBellows: "3. Bellows Comp. (Optional)", placeholderFocalLength: "Focal L.", placeholderBellows: "Bellows Ext.",
-            labelMeteredTime: "4. Metered Time", unitMin: "min", unitSec: "sec", btnCalculate: "Calculate Exposure",
-            labelFormat: "1. Select Format", labelHfFocalLength: "2. Focal Length (mm)", placeholderHfFocalLength: "e.g., 50", labelHfAperture: "3. Aperture (f/)", placeholderHfAperture: "e.g., 8",
-            btnCalculateHf: "Calculate Hyperfocal", btnStartTimer: "Start Timer", btnStopTimer: "Stop Timer",
-            modalSaveTitle: "Save Custom Film", modalSaveLabel: "Film Name", modalSavePlaceholder: "e.g., My HP5+", btnCancel: "Cancel", btnConfirmSave: "Confirm & Save",
-            modalDeleteTitle: "Confirm Deletion", modalDeleteText: "Are you sure you want to delete '{filmName}'? This action cannot be undone.", btnConfirmDelete: "Confirm Delete",
-            errorInvalidTime: { title: "Invalid Input", content: "Please enter a valid time greater than 0." },
-            errorInvalidName: { title: "Invalid Name", content: "Please enter a name for the film." },
-            errorInvalidFactor: { title: "Invalid Factor", content: "Please enter a reciprocity factor (p-value) greater than 1." },
-            errorNoFilm: { title: "Error", content: "Selected film not found." },
-            errorOutOfRange: { title: "Out of Range", content: "Official data for this exposure time is unknown. Please consult the datasheet or test it." },
-            errorInvalidHf: { title: "Invalid Input", content: "Please enter all valid values for focal length and aperture." },
-            resultCorrectedTime: "Corrected Exposure", resultHyperfocal: "Hyperfocal Distance",
-            unitMeter: "meters", timeUnitSec: "sec", timeUnitMin: "min", timerComplete: "Done!"
-        },
-        zh: {
-            title: "胶片摄影工具箱", subtitle: "精准计算，轻松创作", langSwitch: "EN", tabReciprocity: "倒易律", tabHyperfocal: "超焦距",
-            labelFilm: "1. 选择胶片", customFilmOption: "自定义胶片...", deleteThisFilm: "删除此胶片", labelCustomFactor: "自定义倒易律系数 (p)", btnSave: "保存",
-            labelND: "2. 选择 ND 减光镜 (可选)", labelBellows: "3. 大画幅皮腔补偿 (可选)", placeholderFocalLength: "镜头焦距", placeholderBellows: "皮腔长度",
-            labelMeteredTime: "4. 输入相机测光时间", unitMin: "分", unitSec: "秒", btnCalculate: "计算曝光时间",
-            labelFormat: "1. 选择画幅", labelHfFocalLength: "2. 输入焦距 (mm)", placeholderHfFocalLength: "例如: 50", labelHfAperture: "3. 输入光圈 (f/)", placeholderHfAperture: "例如: 8",
-            btnCalculateHf: "计算超焦距", btnStartTimer: "开始计时", btnStopTimer: "停止计时",
-            modalSaveTitle: "保存自定义胶片", modalSaveLabel: "胶片名称", modalSavePlaceholder: "例如: 我的HP5+", btnCancel: "取消", btnConfirmSave: "确认保存",
-            modalDeleteTitle: "确认删除", modalDeleteText: "您确定要删除胶片 “{filmName}” 吗？此操作无法撤销。", btnConfirmDelete: "确认删除",
-            errorInvalidTime: { title: "输入无效", content: "请输入一个大于0的有效时间。" },
-            errorInvalidName: { title: "名称无效", content: "请输入胶片名称。" },
-            errorInvalidFactor: { title: "系数无效", content: "请输入一个大于1的倒易律系数 (p 值)。" },
-            errorNoFilm: { title: "错误", content: "未找到所选胶片。" },
-            errorOutOfRange: { title: "超出范围", content: "该胶片对于此曝光时间的官方数据未知，请查阅数据手册或进行测试。" },
-            errorInvalidHf: { title: "输入无效", content: "请填写所有有效的焦距和光圈值。" },
-            resultCorrectedTime: "校正后曝光时间", resultHyperfocal: "超焦距",
-            unitMeter: "米", timeUnitSec: "秒", timeUnitMin: "分", timerComplete: "完成!"
+    window.onload = function() {
+        // --- DATA AND CONFIGURATION ---
+        const _translations = {
+            en: {
+                title: "Film Photography Toolkit", subtitle: "Precise calculation for your creation", langSwitch: "中", tabReciprocity: "Reciprocity", tabDof: "DOF/Hyperfocal", tabFlash: "Flash",
+                labelFilm: "1. Select Film", customFilmOption: "Custom Film...", deleteThisFilm: "Delete this film",
+                labelCustomFactor: "Custom Reciprocity Factor (p)", placeholderPValue: "e.g., 1.31",
+                btnSave: "Save",
+                labelND: "2. Select ND Filter (Optional)", labelBellows: "3. Bellows Comp. (Optional)", placeholderFocalLength: "Focal L.", placeholderBellows: "Bellows Ext.",
+                labelMeteredTime: "4. Metered Time", unitMin: "min", unitSec: "sec", btnCalculate: "Calculate Exposure",
+                labelShutterSpeed: "Or Quick Select Shutter Speed", placeholderShutterSpeed: "Select a common speed...",
+                labelFormat: "1. Select Format", labelHfFocalLength: "2. Focal Length (mm)", placeholderHfFocalLength: "e.g., 50", labelHfAperture: "3. Aperture (f/)", placeholderHfAperture: "e.g., 8",
+                labelFocusDistance: "4. Focus Distance (m)", placeholderDistance: "e.g., 3.5 (in meters)", btnCalculateDof: "Calculate DOF & Hyperfocal",
+                btnStartTimer: "Start Timer", btnStopTimer: "Stop Timer",
+                labelCalcMode: "Calculation Mode", calcModeAperture: "Aperture", calcModeDistance: "Distance", calcModePower: "Power",
+                labelGuideNumber: "Guide Number (GN) @ ISO 100", placeholderGuideNumber: "e.g., 40 (in meters)", labelISO: "Film ISO", labelFlashPower: "Flash Power", labelDistance: "Distance to Subject (m)", labelFlashAperture: "Aperture (f/)", placeholderFlashAperture: "e.g., 5.6", btnFlashCalculate: "Calculate",
+                labelModifier: "Flash Modifier (Optional)",
+                modalSaveTitle: "Save Custom Film", modalSaveLabel: "Film Name", modalSavePlaceholder: "e.g., My HP5+", btnCancel: "Cancel", btnConfirmSave: "Confirm & Save",
+                modalDeleteTitle: "Confirm Deletion", modalDeleteText: "Are you sure you want to delete '{filmName}'? This action cannot be undone.", btnConfirmDelete: "Confirm Delete",
+                errorInvalidTime: { title: "Invalid Input", content: "Please enter a valid time greater than 0." }, errorInvalidName: { title: "Invalid Name", content: "Please enter a name for the film." }, errorDuplicateName: { title: "Duplicate Name", content: "A film with this name already exists." }, errorInvalidFactor: { title: "Invalid Factor", content: "Please enter a reciprocity factor (p-value) greater than 1." }, errorNoFilm: { title: "Error", content: "Selected film not found." }, errorOutOfRange: { title: "Out of Range", content: "Official data for this exposure time is unknown. Please consult the datasheet or test it." }, errorInvalidDof: { title: "Invalid Input", content: "Please enter all valid values for calculation." }, errorInvalidFlash: { title: "Invalid Input", content: "Please enter all required valid values." },
+                resultCorrectedTime: "Corrected Exposure", resultDofNear: "Near Limit", resultDofFar: "Far Limit", resultDofTotal: "Total DOF", resultHyperfocal: "Hyperfocal", resultAperture: "Required Aperture", resultDistance: "Max Distance", resultPower: "Recommended Power",
+                infoNoCompensation: { title: "No Compensation Needed", content: "No reciprocity failure compensation is required at this shutter speed." },
+                unitMeter: "meters", timeUnitSec: "sec", timeUnitMin: "min", timerComplete: "Done!"
+            },
+            zh: {
+                title: "胶片摄影工具箱", subtitle: "精准计算，轻松创作", langSwitch: "EN", tabReciprocity: "倒易律", tabDof: "景深/超焦距", tabFlash: "闪光灯",
+                labelFilm: "1. 选择胶片", customFilmOption: "自定义胶片...", deleteThisFilm: "删除此胶片",
+                labelCustomFactor: "自定义倒易律系数 (p)", placeholderPValue: "例如: 1.31",
+                btnSave: "保存",
+                labelND: "2. 选择 ND 减光镜 (可选)", labelBellows: "3. 大画幅皮腔补偿 (可选)", placeholderFocalLength: "镜头焦距", placeholderBellows: "皮腔长度",
+                labelMeteredTime: "4. 输入相机测光时间", unitMin: "分", unitSec: "秒", btnCalculate: "计算曝光时间",
+                labelShutterSpeed: "或快速选择快门速度 (可选)", placeholderShutterSpeed: "选择常用快门速度...",
+                labelFormat: "1. 选择画幅", labelHfFocalLength: "2. 输入焦距 (mm)", placeholderHfFocalLength: "例如: 50", labelHfAperture: "3. 输入光圈 (f/)", placeholderHfAperture: "例如: 8",
+                labelFocusDistance: "4. 对焦距离 (米)", placeholderDistance: "例如: 3.5 (米)", btnCalculateDof: "计算景深与超焦距",
+                btnStartTimer: "开始计时", btnStopTimer: "停止计时",
+                labelCalcMode: "计算模式", calcModeAperture: "计算光圈", calcModeDistance: "计算距离", calcModePower: "计算功率",
+                labelGuideNumber: "闪光指数 (GN) @ ISO 100", placeholderGuideNumber: "例如: 40 (米)", labelISO: "胶片感光度", labelFlashPower: "闪光灯功率", labelDistance: "到主体的距离 (米)", labelFlashAperture: "光圈值 (f/)", placeholderFlashAperture: "例如: 5.6", btnFlashCalculate: "计算",
+                labelModifier: "闪光灯附件 (可选)",
+                modalSaveTitle: "保存自定义胶片", modalSaveLabel: "胶片名称", modalSavePlaceholder: "例如: 我的HP5+", btnCancel: "取消", btnConfirmSave: "确认保存",
+                modalDeleteTitle: "确认删除", modalDeleteText: "您确定要删除胶片 “{filmName}” 吗？此操作无法撤销。", btnConfirmDelete: "确认删除",
+                errorInvalidTime: { title: "输入无效", content: "请输入一个大于0的有效时间。" }, errorInvalidName: { title: "名称无效", content: "请输入胶片名称。" }, errorDuplicateName: { title: "名称重复", content: "一个同名的胶片已经存在。" }, errorInvalidFactor: { title: "系数无效", content: "请输入一个大于1的倒易律系数 (p 值)。" },
+                errorInvalidDof: { title: "输入无效", content: "请填写所有需要的有效数值。" },
+                errorInvalidFlash: { title: "输入无效", content: "请输入所有需要的有效数值。" }, errorNoFilm: { title: "错误", content: "未找到选定的胶片。" },errorOutOfRange: { title: "超出范围", content: "此曝光时间的官方数据未知。请查阅数据表或进行测试。" },
+                resultCorrectedTime: "校正后曝光时间", resultDofNear: "景深近点", resultDofFar: "景深远点", resultDofTotal: "景深全范围", resultHyperfocal: "超焦距", resultAperture: "所需光圈", resultDistance: "最大距离", resultPower: "建议功率",
+                infoNoCompensation: { title: "无需补偿", content: "在此快门速度下，无需进行倒易律失效补偿。" },
+                unitMeter: "米", timeUnitSec: "秒", timeUnitMin: "分", timerComplete: "完成!"
+            }
+        };
+        const _shutterSpeeds = [ { name: "placeholder", value: "" }, { name: "1/1000 s", value: 1/1000 }, { name: "1/500 s", value: 1/500 }, { name: "1/250 s", value: 1/250 }, { name: "1/125 s", value: 1/125 }, { name: "1/60 s", value: 1/60 }, { name: "1/30 s", value: 1/30 }, { name: "1/15 s", value: 1/15 }, { name: "1/8 s", value: 1/8 }, { name: "1/4 s", value: 1/4 }, { name: "1/2 s", value: 0.5 }, { name: "1 s", value: 1 } ];
+        const _flashPowers = [ { name: '1/1 (Full)', value: 1 }, { name: '1/2', value: 0.5 }, { name: '1/4', value: 0.25 }, { name: '1/8', value: 0.125 }, { name: '1/16', value: 0.0625 }, { name: '1/32', value: 0.03125 }, { name: '1/64', value: 0.015625 }, { name: '1/128', value: 0.0078125 } ];
+        const _flashModifiers = [ { name: '无', loss: 0 }, { name: '标准反光罩', loss: 0 }, { name: '透射伞', loss: 1 }, { name: '反光伞 (银色)', loss: 1.5 }, { name: '柔光箱', loss: 1.5 }, { name: '束光筒', loss: 2 } ];
+        const _ndFilters = [ { name: '无', factor: 1 }, { name: 'ND4 (2档)', factor: 4 }, { name: 'ND8 (3档)', factor: 8 }, { name: 'ND64 (6档)', factor: 64 }, { name: 'ND1000 (10档)', factor: 1024 }, { name: 'ND100K (16.6档)', factor: 100000 } ];
+        const _sensorFormats = [ { name: '全画幅 (35mm)', coc: 0.030 }, { name: 'APS-C', coc: 0.020 }, { name: 'M4/3', coc: 0.015 }, { name: '6x6 中画幅', coc: 0.060 }, { name: '4x5 大画幅', coc: 0.100 } ];
+        const _calculatePortra = (tm) => { if (tm <= 1) return tm * 2; if (tm <= 10) return 2 + (tm - 1) * (28 / 9); if (tm <= 100) return 30 + (tm - 10) * (170 / 90); return -1; };
+        const _calculateFoma100 = (tm) => { if (tm <= 1) return tm * 2; const logTm = Math.log10(tm); return tm * (Math.pow(logTm, 2) + 5 * logTm + 2); };
+        const _calculateVision50D = (tm) => { if (tm <= 1) return tm; const factor = 1 + (tm - 1) * ((1.26 - 1) / 9); if (tm <= 10) return tm * factor; const factor2 = 1.26 + (tm - 10) * ((1.587 - 1.26) / 90); if (tm <= 100) return tm * factor2; return -1; };
+        const _calculateVision250D = (tm) => { if (tm <= 1) return tm; const factor = 1 + (tm - 1) * (0.41 / 9); if (tm <= 10) return tm * factor; const factor2 = 1.41 + (tm - 10) * ((2 - 1.41) / 90); if (tm <= 100) return tm * factor2; return -1; };
+        const _calculateVision500T = (tm) => { if (tm <= 1) return tm; const factor = 1 + (tm - 1) * (1 / 9); if (tm <= 10) return tm * factor; const factor2 = 2 + (tm - 10) * ((4 - 2) / 90); if (tm <= 100) return tm * factor2; return -1; };
+        const _baseFilmData = [
+          { id: 'cinestill_800t', name: 'CineStill 800T', p: 0, calculate: (tm) => tm > 1 ? tm * 2.6 : tm },
+          { id: 'fomapan_100', name: 'Fomapan 100 Classic', p: 0, calculate: _calculateFoma100 },
+          { id: 'fomapan_200', name: 'Fomapan 200 Creative', p: 1.65 },
+          { id: 'fomapan_400', name: 'Fomapan 400 Action', p: 0, calculate: (tm) => 1.30 * Math.pow(tm, 1.90) },
+          { id: 'fujifilm_acros_100_ii', name: 'Fujifilm Neopan Acros 100 II', p: 0, calculate: (tm) => { if (tm <= 120) return tm; if (tm <= 1000) return tm * Math.SQRT2; return -1; } },
+          { id: 'fujifilm_pro_160ns', name: 'Fujifilm PRO 160NS', p: 0, calculate: (tm) => { if (tm <= 16) return tm; if (tm <= 32) return 50; return -1; } },
+          { id: 'fujifilm_provia_100f', name: 'Fujifilm Provia 100F', p: 0, calculate: (tm) => (tm <= 128) ? tm : -1 },
+          { id: 'fujifilm_velvia_50', name: 'Fujifilm Velvia 50', p: 0, calculate: (tm) => { if (tm <= 2) return tm; if (tm <= 4) return 8; if (tm <= 8) return 20; if (tm <= 15) return 50; if (tm <= 30) return 150; if (tm <= 60) return 300; return -1; } },
+          { id: 'fujifilm_velvia_100', name: 'Fujifilm Velvia 100', p: 0, calculate: (tm) => { if (tm <= 8) return tm * 1.5; if (tm <= 15) return 20; if (tm <= 30) return 40; if (tm <= 60) return 90; return -1; } },
+          { id: 'ilford_delta_100', name: 'Ilford Delta 100 Professional', p: 1.31 }, { id: 'ilford_delta_400', name: 'Ilford Delta 400 Professional', p: 1.29 }, { id: 'ilford_delta_3200', name: 'Ilford Delta 3200 Professional', p: 1.34 }, { id: 'ilford_fp4_plus', name: 'Ilford FP4 Plus', p: 1.26 }, { id: 'ilford_hp5_plus', name: 'Ilford HP5 Plus', p: 1.31 }, { id: 'ilford_pan_f_plus', name: 'Ilford Pan F Plus', p: 1.48 },
+          { id: 'kentmere_pan_100', name: 'Kentmere Pan 100', p: 1.35 }, { id: 'kentmere_pan_400', name: 'Kentmere Pan 400', p: 1.38 },
+          { id: 'kodak_ektachrome_100d_5294', name: 'Kodak Ektachrome 100D (5294)', p: 0, calculate: _calculateVision50D },
+          { id: 'kodak_ektachrome_e100', name: 'Kodak Ektachrome E100', p: 0, calculate: _calculateVision50D },
+          { id: 'kodak_ektar_100', name: 'Kodak Ektar 100', p: 0, calculate: (tm) => tm * 1.5 },
+          { id: 'kodak_portra_160', name: 'Kodak Portra 160', p: 0, calculate: _calculatePortra }, { id: 'kodak_portra_400', name: 'Kodak Portra 400', p: 0, calculate: _calculatePortra }, { id: 'kodak_portra_800', name: 'Kodak Portra 800', p: 0, calculate: _calculatePortra },
+          { id: 'kodak_tmax_100', name: 'Kodak T-MAX 100', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : (tm <= 100 ? tm * 2.2 : -1) },
+          { id: 'kodak_tmax_400', name: 'Kodak T-MAX 400', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : (tm <= 100 ? tm * 2.0 : -1) },
+          { id: 'kodak_tri_x_400', name: 'Kodak Tri-X 400', p: 0, calculate: (tm) => (tm <= 10) ? tm * 2 : (tm <= 100 ? tm * 3 : -1) },
+          { id: 'kodak_vision3_50d', name: 'Kodak Vision3 50D (5203)', p: 0, calculate: _calculateVision50D },
+          { id: 'kodak_vision3_250d', name: 'Kodak Vision3 250D (5207)', p: 0, calculate: _calculateVision250D },
+          { id: 'kodak_vision3_500t', name: 'Kodak Vision3 500T (5219)', p: 0, calculate: _calculateVision500T },
+          { id: 'custom', name: '自定义胶片...', p: 0 }
+        ];
+
+        // --- DOM & STATE VARIABLES ---
+        let _currentLanguage = 'zh';
+        const _dom = { mainContent: document.getElementById('main-content'), themeSwitcher: document.getElementById('theme-switcher'), langSwitcher: document.getElementById('lang-switcher'), tabs: { reciprocity: document.getElementById('tab-reciprocity'), dof: document.getElementById('tab-dof'), flash: document.getElementById('tab-flash') }, panels: { reciprocity: document.getElementById('panel-reciprocity'), dof: document.getElementById('panel-dof'), flash: document.getElementById('panel-flash') }, reciprocity: { filmSelect: document.getElementById('film-select'), deleteArea: document.getElementById('delete-film-area'), deleteBtn: document.getElementById('delete-film-btn'), customGroup: document.getElementById('custom-factor-group'), customInput: document.getElementById('custom-factor'), saveBtn: document.getElementById('save-custom-btn'), ndSelect: document.getElementById('nd-filter-select'), minInput: document.getElementById('metered-time-min'), secInput: document.getElementById('metered-time-sec'), calculateBtn: document.getElementById('calculate-btn'), messageArea: document.getElementById('message-area'), focalLengthInput: document.getElementById('focal-length'), bellowsExtensionInput: document.getElementById('bellows-extension'), shutterSpeedSelect: document.getElementById('shutter-speed-select') }, dof: { format: document.getElementById('dof-format'), focalLength: document.getElementById('dof-focal-length'), aperture: document.getElementById('dof-aperture'), distance: document.getElementById('dof-distance'), calculateBtn: document.getElementById('calculate-dof-btn'), messageArea: document.getElementById('dof-message-area') }, flash: { gnInput: document.getElementById('flash-gn'), isoInput: document.getElementById('flash-iso'), powerSelect: document.getElementById('flash-power'), distanceInput: document.getElementById('flash-distance'), apertureInput: document.getElementById('flash-aperture'), calculateBtn: document.getElementById('calculate-flash-btn'), messageArea: document.getElementById('flash-message-area'), calcModeRadios: document.querySelectorAll('input[name="flash-mode"]'), modifierSelect: document.getElementById('flash-modifier'), apertureGroup: document.getElementById('flash-aperture-group'), distanceGroup: document.getElementById('flash-distance-group'), powerGroup: document.getElementById('flash-power-group') }, timer: { card: document.getElementById('timer-card'), display: document.getElementById('timer-display'), stopBtn: document.getElementById('stop-timer-btn') }, modals: { save: document.getElementById('save-modal'), saveNameInput: document.getElementById('custom-film-name'), cancelSave: document.getElementById('cancel-save-btn'), confirmSave: document.getElementById('confirm-save-btn'), delete: document.getElementById('delete-modal'), deleteText: document.getElementById('delete-confirm-text'), cancelDelete: document.getElementById('cancel-delete-btn'), confirmDelete: document.getElementById('confirm-delete-btn') } };
+        let _timerInterval, _alarmInterval, _audioCtx, _tempPValue = 0, _filmToDelete = null;
+
+        const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+        const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+        const _setTheme = (theme) => {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            _dom.themeSwitcher.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+        };
+
+        const _toggleTheme = () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            _setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        };
+
+        const _setLanguage = (lang) => { _currentLanguage = lang; localStorage.setItem('language', lang); document.documentElement.lang = lang; const langData = _translations[lang]; document.querySelectorAll('[data-lang-key]').forEach(el => { el.textContent = langData[el.dataset.langKey] || ''; }); document.querySelectorAll('[data-lang-placeholder]').forEach(el => { el.placeholder = langData[el.dataset.langPlaceholder] || ""; }); if(_dom.langSwitcher) _dom.langSwitcher.textContent = langData.langSwitch; _populateFilmSelect(); _populateNdSelect(); _populateFormatSelect(); _populateShutterSpeedSelect(); _populateFlashModifierSelect(); _populateFlashPowerSelect(); };
+        const _formatTime = (s, units=true) => { const langData=_translations[_currentLanguage]; if (isNaN(s) || s === null || s < 0 || !isFinite(s) ) return units ? "N/A" : "00:00"; const t=Math.round(s); if(!units){const m=String(Math.floor(t/60)).padStart(2,'0');const sec=String(t%60).padStart(2,'0');return`${m}:${sec}`}if(t<60)return`${t.toFixed(1)} ${langData.timeUnitSec}`;const m=Math.floor(t/60);const sec=t%60;return`${m} ${langData.timeUnitMin} ${sec.toFixed(0)} ${langData.timeUnitSec}`};
+        const _showMessage = (area, type, titleKey, content, finalTime) => { let cardHtml = ''; const langData = _translations[_currentLanguage]; let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : ''; if (type === 'result' && area === _dom.reciprocity.messageArea) { cardHtml = `<div class="result-card p-5 text-center fade-in"><p class="text-lg result-label">${title}</p><p class="text-4xl result-text mb-4">${content}</p><button id="start-timer-btn" data-time="${finalTime}" class="text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center mt-4" style="background-color: var(--success-color);">${langData.btnStartTimer}</button></div>`; } else if (type === 'result') { cardHtml = `<div class="result-card p-5 text-center fade-in">${content}</div>`; } else if (type === 'info') { cardHtml = `<div class="info-card p-5 text-center fade-in"><p class="text-xl font-bold mb-2">${title}</p><p>${langData[titleKey].content}</p></div>`; } else { cardHtml = `<div class="error-message p-4 text-center fade-in"><p class="font-bold">${title}</p><p>${langData[titleKey].content}</p></div>`; } area.innerHTML = cardHtml; const startTimerBtn = document.getElementById('start-timer-btn'); if (startTimerBtn) { startTimerBtn.addEventListener('click', e => _startTimer(parseFloat(e.target.dataset.time))); } };
+        const _handleReciprocityCalculate = () => {
+            const minutesVal = parseFloat(_dom.reciprocity.minInput.value) || 0;
+            const secondsVal = parseFloat(_dom.reciprocity.secInput.value) || 0;
+            const baseTime = (minutesVal * 60) + secondsVal;
+            if (baseTime <= 0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; }
+            const ndFactor = parseFloat(_dom.reciprocity.ndSelect.value) || 1;
+            const focalLength = parseFloat(_dom.reciprocity.focalLengthInput.value);
+            const bellowsExtension = parseFloat(_dom.reciprocity.bellowsExtensionInput.value);
+            let bellowsFactor = 1;
+            if (focalLength > 0 && bellowsExtension > focalLength) { bellowsFactor = (bellowsExtension / focalLength) ** 2; }
+            const timeBeforeReciprocity = baseTime * ndFactor * bellowsFactor;
+            if (!isFinite(timeBeforeReciprocity)) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; }
+            const filmId = _dom.reciprocity.filmSelect.value;
+            const filmData = [..._baseFilmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')];
+            const film = filmData.find((f) => f.id === filmId);
+            if (!film) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorNoFilm'); return; }
+            let pValue = film.p;
+            if (filmId === 'custom') {
+                const customP = parseFloat(_dom.reciprocity.customInput.value);
+                if (!customP || customP <= 1.0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; }
+                pValue = customP;
+            }
+            let tc = film.calculate ? film.calculate(timeBeforeReciprocity) : (timeBeforeReciprocity > 1 ? Math.pow(timeBeforeReciprocity, pValue) : timeBeforeReciprocity);
+            if (!isFinite(tc) || tc < 0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorOutOfRange'); }
+            else if (tc < 1 && Math.abs(tc - timeBeforeReciprocity) < 0.1) { _showMessage(_dom.reciprocity.messageArea, 'info', 'infoNoCompensation'); }
+            else { _showMessage(_dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', _formatTime(tc), tc); }
+        };
+        const _handleDofCalculate = () => {
+            const focalLength = parseFloat(_dom.dof.focalLength.value);
+            const aperture = parseFloat(_dom.dof.aperture.value);
+            const coc = parseFloat(_dom.dof.format.value);
+            const distance = parseFloat(_dom.dof.distance.value) * 1000;
+            if (!focalLength || !aperture || !coc || !distance || focalLength <= 0 || aperture <= 0 || distance <= 0) {
+                _showMessage(_dom.dof.messageArea, 'error', 'errorInvalidDof');
+                return;
+            }
+            const H = (focalLength * focalLength) / (aperture * coc) + focalLength;
+            const nearLimit = (H * distance) / (H + (distance - focalLength));
+            const farLimit = (H * distance) / (H - (distance - focalLength));
+            const langData = _translations[_currentLanguage];
+            const resultHtml = `
+                <div class="space-y-3 text-lg">
+                    <div class="flex justify-between items-baseline">
+                        <p class="result-label">${langData.resultDofNear}</p>
+                        <p class="result-text font-bold text-2xl">${(nearLimit / 1000).toFixed(2)}m</p>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <p class="result-label">${langData.resultDofFar}</p>
+                        <p class="result-text font-bold text-2xl">${(isFinite(farLimit) && farLimit > 0 ? (farLimit / 1000).toFixed(2) + 'm' : '∞')}</p>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <p class="result-label">${langData.resultDofTotal}</p>
+                        <p class="result-text font-bold text-2xl">${(isFinite(farLimit) && farLimit > 0 ? ((farLimit - nearLimit) / 1000).toFixed(2) + 'm' : '∞')}</p>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <p class="result-label">${langData.resultHyperfocal}</p>
+                        <p class="result-text font-bold text-2xl">${(H / 1000).toFixed(2)}m</p>
+                    </div>
+                </div>
+            `;
+            _showMessage(_dom.dof.messageArea, 'result', null, resultHtml);
+        };
+        const _updateFlashUI = (mode) => {
+            _dom.flash.apertureGroup.classList.toggle('hidden', mode === 'aperture');
+            _dom.flash.distanceGroup.classList.toggle('hidden', mode === 'distance');
+            _dom.flash.powerGroup.classList.toggle('hidden', mode === 'power');
+            _dom.flash.messageArea.innerHTML = '';
+        };
+        const _handleFlashCalculate = () => {
+            const mode = document.querySelector('input[name="flash-mode"]:checked').value;
+            const gn = parseFloat(_dom.flash.gnInput.value);
+            const iso = parseFloat(_dom.flash.isoInput.value);
+            const modifierLoss = parseFloat(_dom.flash.modifierSelect.value);
+            const distance = parseFloat(_dom.flash.distanceInput.value);
+            const power = parseFloat(_dom.flash.powerSelect.value);
+            const aperture = parseFloat(_dom.flash.apertureInput.value);
+            const langData = _translations[_currentLanguage];
+            if (!gn || !iso || gn <= 0 || iso <= 0) {
+                _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash');
+                return;
+            }
+            const modifierFactor = Math.sqrt(Math.pow(2, -modifierLoss));
+            const effectiveGn = gn * Math.sqrt(iso / 100) * modifierFactor;
+            let resultHtml = '';
+            let titleKey = '';
+
+            if (mode === 'aperture') {
+                if (isNaN(distance) || isNaN(power) || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; }
+                const result = (effectiveGn * Math.sqrt(power)) / distance;
+                titleKey = 'resultAperture';
+                resultHtml = `<p class="text-4xl result-text mt-1">f/${result.toFixed(1)}</p>`;
+            } else if (mode === 'distance') {
+                if (isNaN(aperture) || isNaN(power) || aperture <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; }
+                const result = (effectiveGn * Math.sqrt(power)) / aperture;
+                titleKey = 'resultDistance';
+                resultHtml = `<p class="text-4xl result-text mt-1">${result.toFixed(1)}<span class="text-2xl ml-2 opacity-75">${langData.unitMeter}</span></p>`;
+            } else if (mode === 'power') {
+                if (isNaN(aperture) || isNaN(distance) || aperture <= 0 || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; }
+                const requiredPower = Math.pow((aperture * distance) / effectiveGn, 2);
+                if (requiredPower > 1 || !isFinite(requiredPower)) { _showMessage(_dom.flash.messageArea, 'error', 'errorOutOfRange'); return;}
+                const closestPower = _flashPowers.reduce((prev, curr) => Math.abs(curr.value - requiredPower) < Math.abs(prev.value - requiredPower) ? curr : prev);
+                titleKey = 'resultPower';
+                resultHtml = `<p class="text-4xl result-text mt-1">${closestPower.name}</p>`;
+            }
+
+            if (resultHtml) {
+                const fullResultHtml = `<p class="text-lg result-label">${langData[titleKey]}</p>${resultHtml}`;
+                _showMessage(_dom.flash.messageArea, 'result', null, fullResultHtml);
+            }
+        };
+        const _populateFilmSelect = () => { const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); const allFilms = [..._baseFilmData, ...customFilms]; const currentVal = _dom.reciprocity.filmSelect.value; _dom.reciprocity.filmSelect.innerHTML = ''; const customTemplate = allFilms.find(f => f.id === 'custom'); const sortedFilms = allFilms.filter(f => f.id !== 'custom').sort((a,b) => a.name.localeCompare(b.name, _currentLanguage === 'zh' ? 'zh-Hans-CN' : 'en-US')); [...sortedFilms, customTemplate].forEach(film => { if(!film) return; const option = document.createElement('option'); option.value = film.id; option.textContent = film.id === "custom" ? _translations[_currentLanguage].customFilmOption : film.name; _dom.reciprocity.filmSelect.appendChild(option); }); if (document.querySelector(`#film-select option[value="${currentVal}"]`)) { _dom.reciprocity.filmSelect.value = currentVal; } else if (sortedFilms.length > 0) { _dom.reciprocity.filmSelect.value = sortedFilms[0].id; } else if (customTemplate) { _dom.reciprocity.filmSelect.value = customTemplate.id;} _handleFilmSelectChange(); };
+        const _populateGenericSelect = (selectEl, data, textKey, valueKey) => { selectEl.innerHTML = ''; data.forEach(item => { const opt = document.createElement('option'); opt.value = item[valueKey]; opt.textContent = item[textKey]; selectEl.appendChild(opt); }); };
+        const _populateNdSelect = () => _populateGenericSelect(_dom.reciprocity.ndSelect, _ndFilters, 'name', 'factor');
+        const _populateFormatSelect = () => _populateGenericSelect(_dom.dof.format, _sensorFormats, 'name', 'coc');
+        const _populateShutterSpeedSelect = () => { _dom.reciprocity.shutterSpeedSelect.innerHTML = ''; _shutterSpeeds.forEach(s => { const opt = document.createElement('option'); opt.value = s.value; opt.textContent = s.name === "placeholder" ? _translations[_currentLanguage].placeholderShutterSpeed : s.name; if (s.name === "placeholder") { opt.disabled = true; opt.selected = true;} _dom.reciprocity.shutterSpeedSelect.appendChild(opt); }); };
+        const _populateFlashPowerSelect = () => _populateGenericSelect(_dom.flash.powerSelect, _flashPowers, 'name', 'value');
+        const _populateFlashModifierSelect = () => _populateGenericSelect(_dom.flash.modifierSelect, _flashModifiers, 'name', 'loss');
+        const _handleFilmSelectChange = () => { _dom.reciprocity.messageArea.innerHTML = ''; const isCustom = _dom.reciprocity.filmSelect.value === 'custom'; const isSavedCustom = _dom.reciprocity.filmSelect.value?.startsWith('custom_'); _dom.reciprocity.customGroup.classList.toggle('hidden', !isCustom); _dom.reciprocity.deleteArea.classList.toggle('hidden', !isSavedCustom); };
+        const _openSaveModal = () => { _tempPValue = parseFloat(_dom.reciprocity.customInput.value); if (!_tempPValue || _tempPValue <= 1.0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; } _dom.modals.saveNameInput.value = ''; _dom.modals.save.classList.remove('hidden'); _dom.modals.saveNameInput.focus(); };
+        const _closeSaveModal = () => _dom.modals.save.classList.add('hidden');
+        const _confirmSaveCustomFilm = () => { const name = _dom.modals.saveNameInput.value.trim(); const allFilms = [..._baseFilmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')]; if(!name) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidName'); return; } if(allFilms.some(f => f.name.toLowerCase() === name.toLowerCase())) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorDuplicateName'); return; } const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); const newFilm = { id: `custom_${Date.now()}`, name: name, p: _tempPValue }; customFilms.push(newFilm); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _dom.reciprocity.filmSelect.value = newFilm.id; _handleFilmSelectChange(); _closeSaveModal(); };
+        const _openDeleteModal = () => { const selectedOption = _dom.reciprocity.filmSelect.options[_dom.reciprocity.filmSelect.selectedIndex]; _filmToDelete = { id: selectedOption.value, name: selectedOption.text }; _dom.modals.deleteText.textContent = _translations[_currentLanguage].modalDeleteText.replace('{filmName}', _filmToDelete.name); _dom.modals.delete.classList.remove('hidden'); };
+        const _closeDeleteModal = () => { _dom.modals.delete.classList.add('hidden'); _filmToDelete = null; };
+        const _confirmDeleteFilm = () => { if (!_filmToDelete) return; let customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); customFilms = customFilms.filter(f => f.id !== _filmToDelete.id); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _closeDeleteModal(); };
+        const _playBeep = () => { if (!_audioCtx) _audioCtx = new(window.AudioContext || window.webkitAudioContext)(); const osc = _audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, _audioCtx.currentTime); osc.connect(_audioCtx.destination); osc.start(); osc.stop(_audioCtx.currentTime + 0.2); };
+
+        const _stopTimer = () => {
+            clearInterval(_timerInterval);
+            clearInterval(_alarmInterval);
+            _timerInterval = _alarmInterval = null;
+            document.body.classList.remove('flashing');
+            _dom.timer.card.classList.add('hidden');
+            _dom.mainContent.classList.remove('hidden');
+            _dom.tabs.reciprocity.click();
+        };
+        const _startTimer = (totalSeconds) => {
+            if (!isFinite(totalSeconds) || totalSeconds < 0) { return; }
+            _dom.mainContent.classList.add('hidden');
+            _dom.timer.card.classList.remove('hidden', 'finished');
+            document.body.classList.remove('flashing');
+            let remaining = Math.round(totalSeconds);
+            _dom.timer.display.textContent = _formatTime(remaining, false);
+            if (_timerInterval) clearInterval(_timerInterval); if (_alarmInterval) clearInterval(_alarmInterval);
+            _timerInterval = setInterval(() => { remaining--; _dom.timer.display.textContent = _formatTime(remaining, false); if (remaining <= 0) { clearInterval(_timerInterval); _dom.timer.display.textContent = _translations[_currentLanguage].timerComplete; _dom.timer.card.classList.add('finished'); _alarmInterval = setInterval(() => { _playBeep(); document.body.classList.toggle('flashing'); }, 1000); } }, 1000);
+        };
+        const _restrictInputToNumeric = (event) => {
+            if ([46, 8, 9, 27, 13, 110, 190, 37, 39].includes(event.keyCode) || (event.keyCode === 65 && (event.ctrlKey || event.metaKey)) || (event.keyCode === 67 && (event.ctrlKey || event.metaKey)) || (event.keyCode === 86 && (event.ctrlKey || event.metaKey)) || (event.keyCode === 88 && (event.ctrlKey || event.metaKey))) {
+                if ((event.keyCode === 190 || event.keyCode === 110) && event.target.value.includes('.')) event.preventDefault();
+                return;
+            }
+            if ((event.shiftKey || (event.keyCode < 48 || event.keyCode > 57)) && (event.keyCode < 96 || event.keyCode > 105)) event.preventDefault();
+        };
+
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const ripple = document.createElement("span");
+
+            const rect = button.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+
+            ripple.classList.add("ripple");
+
+            const existingRipple = button.querySelector(".ripple");
+            if (existingRipple) {
+                existingRipple.remove();
+            }
+
+            button.appendChild(ripple);
         }
+
+        // --- APP INITIALIZATION ---
+        (function _init() {
+            // Setup Theme
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedTheme = localStorage.getItem('theme');
+            _setTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+
+            // Setup language and dynamic content first
+            _setLanguage(localStorage.getItem('language') || 'zh');
+
+            // Attach all event listeners
+            _dom.themeSwitcher.addEventListener('click', _toggleTheme);
+            _dom.langSwitcher.addEventListener('click', () => { _setLanguage(_currentLanguage === 'zh' ? 'en' : 'zh'); });
+            _dom.reciprocity.calculateBtn.addEventListener('click', _handleReciprocityCalculate);
+            _dom.dof.calculateBtn.addEventListener('click', _handleDofCalculate);
+            _dom.flash.calculateBtn.addEventListener('click', _handleFlashCalculate);
+            _dom.reciprocity.saveBtn.addEventListener('click', _openSaveModal);
+            _dom.modals.cancelSave.addEventListener('click', _closeSaveModal);
+            _dom.modals.confirmSave.addEventListener('click', _confirmSaveCustomFilm);
+            _dom.reciprocity.deleteBtn.addEventListener('click', _openDeleteModal);
+            _dom.modals.cancelDelete.addEventListener('click', _closeDeleteModal);
+            _dom.modals.confirmDelete.addEventListener('click', _confirmDeleteFilm);
+            _dom.timer.stopBtn.addEventListener('click', _stopTimer);
+
+            // Tab switching logic
+            Object.values(_dom.tabs).forEach((tab, index) => {
+                tab.addEventListener('click', () => {
+                    Object.values(_dom.tabs).forEach(t => t.classList.remove('active'));
+                    Object.values(_dom.panels).forEach(p => p.classList.add('hidden'));
+                    tab.classList.add('active');
+                    Object.values(_dom.panels)[index].classList.remove('hidden');
+                });
+            });
+
+            // Shutter speed and manual time synchronization
+            const handleManualTimeInput = () => {
+                _dom.reciprocity.shutterSpeedSelect.value = '';
+                _dom.reciprocity.messageArea.innerHTML = '';
+            };
+            _dom.reciprocity.minInput.addEventListener('input', handleManualTimeInput);
+            _dom.reciprocity.secInput.addEventListener('input', handleManualTimeInput);
+
+            _dom.reciprocity.shutterSpeedSelect.addEventListener('change', (e) => {
+                const time = parseFloat(e.target.value);
+                if (!isNaN(time)) {
+                    _dom.reciprocity.minInput.value = '';
+                    _dom.reciprocity.secInput.value = time;
+                }
+                _dom.reciprocity.messageArea.innerHTML = '';
+            });
+
+            _dom.reciprocity.filmSelect.addEventListener('change', _handleFilmSelectChange);
+            _dom.flash.calcModeRadios.forEach(radio => radio.addEventListener('change', () => _updateFlashUI(radio.value)));
+
+            // Add numeric input restrictions
+            const numericInputs = [ _dom.reciprocity.customInput, _dom.reciprocity.focalLengthInput, _dom.reciprocity.bellowsExtensionInput, _dom.reciprocity.minInput, _dom.reciprocity.secInput, _dom.dof.focalLength, _dom.dof.aperture, _dom.dof.distance, _dom.flash.gnInput, _dom.flash.isoInput, _dom.flash.apertureInput, _dom.flash.distanceInput ];
+            numericInputs.forEach(inputEl => { if (inputEl) { inputEl.addEventListener('keydown', _restrictInputToNumeric); } });
+
+            // Set initial UI states
+            _updateFlashUI('aperture');
+            _dom.tabs.reciprocity.click();
+
+            // Attach CSS ripple effect to all designated buttons
+            const rippleButtons = document.querySelectorAll('.btn-ripple');
+            rippleButtons.forEach(button => {
+                button.addEventListener("click", createRipple);
+            });
+        })();
     };
-
-    // --- DATA & CONFIG ---
-    const ndFilters = [ { name: '无', factor: 1 }, { name: 'ND4 (2档)', factor: 4 }, { name: 'ND8 (3档)', factor: 8 }, { name: 'ND64 (6档)', factor: 64 }, { name: 'ND1000 (10档)', factor: 1024 }, { name: 'ND100K (16.6档)', factor: 100000 } ];
-    const sensorFormats = [ { name: '全画幅 (35mm)', coc: 0.030 }, { name: 'APS-C', coc: 0.020 }, { name: 'M4/3', coc: 0.015 }, { name: '6x6 中画幅', coc: 0.060 }, { name: '4x5 大画幅', coc: 0.100 } ];
-    const calculatePortra = (tm) => { if (tm <= 1) return tm * 2; if (tm <= 10) return 2 + (tm - 1) * (28 / 9); if (tm <= 100) return 30 + (tm - 10) * (170 / 90); return -1; };
-    const baseFilmData = [
-      { id: 'cinestill_800t', name: 'CineStill 800T', p: 0, calculate: (tm) => tm > 1 ? tm * 2.6 : tm },
-      { id: 'fomapan_100', name: 'Foma PAN 100', p: 0, calculate: (tm) => 0.89 * Math.pow(tm, 1.83) },
-      { id: 'fomapan_400', name: 'Foma PAN 400', p: 0, calculate: (tm) => 1.30 * Math.pow(tm, 1.90) },
-      { id: 'fujifilm_provia_100f', name: 'Fujifilm Provia 100F', p: 0, calculate: (tm) => (tm <= 128) ? tm : -1 },
-      { id: 'fujifilm_velvia_50', name: 'Fujifilm Velvia 50', p: 0, calculate: (tm) => { if (tm <= 2) return tm; if (tm <= 4) return 8; if (tm <= 8) return 20; if (tm <= 15) return 50; if (tm <= 30) return 150; if (tm <= 60) return 300; return -1; } },
-      { id: 'ilford_delta_100', name: 'Ilford Delta 100', p: 1.31 }, { id: 'ilford_delta_400', name: 'Ilford Delta 400', p: 1.29 }, { id: 'ilford_delta_3200', name: 'Ilford Delta 3200', p: 1.34 }, { id: 'ilford_hp5_plus', name: 'Ilford HP5+', p: 1.31 },
-      { id: 'kentmere_pan_100', name: 'Kentmere PAN 100', p: 1.35 }, { id: 'kentmere_pan_400', name: 'Kentmere PAN 400', p: 1.38 },
-      { id: 'kodak_ektar_100', name: 'Kodak Ektar 100', p: 0, calculate: (tm) => tm * 1.5 },
-      { id: 'kodak_portra_160', name: 'Kodak Portra 160', p: 0, calculate: calculatePortra }, { id: 'kodak_portra_400', name: 'Kodak Portra 400', p: 0, calculate: calculatePortra }, { id: 'kodak_portra_800', name: 'Kodak Portra 800', p: 0, calculate: calculatePortra },
-      { id: 'kodak_vision3_250d', name: 'Kodak Vision3 250D (5207)', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : -1 },
-      { id: 'kodak_vision3_500t', name: 'Kodak Vision3 500T (5219)', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : -1 },
-      { id: 'custom', name: '自定义胶片...', p: 0 }
-    ];
-    let currentLanguage = 'zh';
-
-    // --- DOM Elements ---
-    const dom = {
-        langSwitcher: document.getElementById('lang-switcher'),
-        tabs: { reciprocity: document.getElementById('tab-reciprocity'), hyperfocal: document.getElementById('tab-hyperfocal') },
-        panels: { reciprocity: document.getElementById('panel-reciprocity'), hyperfocal: document.getElementById('panel-hyperfocal') },
-        reciprocity: { filmSelect: document.getElementById('film-select'), deleteArea: document.getElementById('delete-film-area'), deleteBtn: document.getElementById('delete-film-btn'), customGroup: document.getElementById('custom-factor-group'), customInput: document.getElementById('custom-factor'), saveBtn: document.getElementById('save-custom-btn'), ndSelect: document.getElementById('nd-filter-select'), minInput: document.getElementById('metered-time-min'), secInput: document.getElementById('metered-time-sec'), calculateBtn: document.getElementById('calculate-btn'), messageArea: document.getElementById('message-area'), focalLengthInput: document.getElementById('focal-length'), bellowsExtensionInput: document.getElementById('bellows-extension') },
-        hyperfocal: { format: document.getElementById('hf-format'), focalLength: document.getElementById('hf-focal-length'), aperture: document.getElementById('hf-aperture'), calculateBtn: document.getElementById('calculate-hf-btn'), messageArea: document.getElementById('hf-message-area') },
-        timer: { card: document.getElementById('timer-card'), display: document.getElementById('timer-display'), stopBtn: document.getElementById('stop-timer-btn') },
-        modals: { save: document.getElementById('save-modal'), saveNameInput: document.getElementById('custom-film-name'), cancelSave: document.getElementById('cancel-save-btn'), confirmSave: document.getElementById('confirm-save-btn'), delete: document.getElementById('delete-modal'), deleteText: document.getElementById('delete-confirm-text'), cancelDelete: document.getElementById('cancel-delete-btn'), confirmDelete: document.getElementById('confirm-delete-btn') }
-    };
-
-    let timerInterval, alarmInterval, audioCtx, tempPValue = 0, filmToDelete = null;
-
-    const setLanguage = (lang) => {
-        currentLanguage = lang; localStorage.setItem('language', lang); document.documentElement.lang = lang; const langData = translations[lang];
-        document.querySelectorAll('[data-lang-key]').forEach(el => { el.textContent = langData[el.dataset.langKey]; });
-        document.querySelectorAll('[data-lang-placeholder]').forEach(el => { el.placeholder = langData[el.dataset.langPlaceholder]; });
-        dom.langSwitcher.textContent = langData.langSwitch; populateFilmSelect(); populateNdSelect(); populateFormatSelect();
-    };
-
-    const formatTime = (s, units=true) => { const t=Math.round(s); const langData=translations[currentLanguage]; if(s<0||s===null)return"N/A";if(!units){const m=String(Math.floor(t/60)).padStart(2,'0');const sec=String(t%60).padStart(2,'0');return`${m}:${sec}`}if(t<60)return`${t.toFixed(0)} ${langData.timeUnitSec}`;const m=Math.floor(t/60);const sec=t%60;return`${m} ${langData.timeUnitMin} ${sec.toFixed(0)} ${langData.timeUnitSec}`};
-    const showMessage = (area, type, titleKey, contentKey, finalTime) => {
-        let cardHtml = ''; const langData = translations[currentLanguage]; let title, content;
-        if (typeof langData[titleKey] === 'object' && langData[titleKey] !== null) { title = langData[titleKey].title; content = langData[titleKey].content; } else { title = langData[titleKey]; content = contentKey; }
-        if(type==='result'&&area===dom.reciprocity.messageArea){cardHtml=`<div class="result-card rounded-2xl p-5 text-center"><p class="text-lg result-label">${title}</p><p class="text-4xl font-bold result-text mb-4">${content}</p><button id="start-timer-btn" data-time="${finalTime}" class="button text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center">${langData.btnStartTimer}</button></div>`}
-        else if(type==='result'){cardHtml=`<div class="result-card rounded-2xl p-5 text-center"><p class="text-lg result-label">${title}</p><p class="text-3xl font-bold result-text">${content}</p></div>`}
-        else{cardHtml=`<div class="error-message rounded-lg p-4 text-center"><p class="font-bold">${title}</p><p>${content}</p></div>`}
-        area.innerHTML = cardHtml; if(type==='result'&&area===dom.reciprocity.messageArea){document.getElementById('start-timer-btn').addEventListener('click',e=>startTimer(parseFloat(e.target.dataset.time)))}};
-
-    const handleReciprocityCalculate = () => {
-        const minutes = parseFloat(dom.reciprocity.minInput.value) || 0; const seconds = parseFloat(dom.reciprocity.secInput.value) || 0; const baseTime = (minutes * 60) + seconds; if (baseTime <= 0) { showMessage(dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; }
-        const ndFactor = parseFloat(dom.reciprocity.ndSelect.value); const focalLength = parseFloat(dom.reciprocity.focalLengthInput.value) || 0; const bellowsExtension = parseFloat(dom.reciprocity.bellowsExtensionInput.value) || 0; let bellowsFactor = 1; if (focalLength > 0 && bellowsExtension > focalLength) { bellowsFactor = (bellowsExtension / focalLength) ** 2; }
-        const timeBeforeReciprocity = baseTime * ndFactor * bellowsFactor; const selectedFilmId = dom.reciprocity.filmSelect.value; let tc; const filmData = [...baseFilmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')]; const film = filmData.find((f) => f.id === selectedFilmId); if (!film) { showMessage(dom.reciprocity.messageArea, 'error', 'errorNoFilm'); return; };
-        if (selectedFilmId === 'custom') { const p = parseFloat(dom.reciprocity.customInput.value); if (isNaN(p) || p <= 1.0) { showMessage(dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; } tc = timeBeforeReciprocity > 1 ? Math.pow(timeBeforeReciprocity, p) : timeBeforeReciprocity; }
-        else if (film.calculate) { tc = film.calculate(timeBeforeReciprocity); } else { tc = timeBeforeReciprocity > 1 ? Math.pow(timeBeforeReciprocity, film.p) : timeBeforeReciprocity; }
-        if (tc === -1) { showMessage(dom.reciprocity.messageArea, 'error', 'errorOutOfRange'); } else { showMessage(dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', formatTime(tc), tc); }
-    };
-
-    const handleHyperfocalCalculate = () => { const fl=parseFloat(dom.hyperfocal.focalLength.value);const ap=parseFloat(dom.hyperfocal.aperture.value);const coc=parseFloat(dom.hyperfocal.format.value);if(!fl||!ap||!coc||fl<=0||ap<=0){showMessage(dom.hyperfocal.messageArea,'error','errorInvalidHf');return}const hfMM=(fl*fl)/(ap*coc)+fl;const hfM=(hfMM/1000).toFixed(2);showMessage(dom.hyperfocal.messageArea,'result','resultHyperfocal',`${hfM} ${translations[currentLanguage].unitMeter}`)};
-
-    const populateFilmSelect = () => {
-        const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]');
-        const allFilms = [...baseFilmData, ...customFilms];
-
-        const currentVal = dom.reciprocity.filmSelect.value;
-        dom.reciprocity.filmSelect.innerHTML = '';
-
-        const customTemplate = allFilms.find(f => f.id === 'custom');
-        const sortedFilms = allFilms.filter(f => f.id !== 'custom').sort((a,b) => a.name.localeCompare(b.name, currentLanguage === 'zh' ? 'zh-Hans-CN' : 'en-US'));
-
-        [...sortedFilms, customTemplate].forEach(film => {
-            if(!film) return;
-            const option = document.createElement('option');
-            option.value = film.id;
-            option.textContent = film.id === "custom" ? translations[currentLanguage].customFilmOption : film.name;
-            dom.reciprocity.filmSelect.appendChild(option);
-        });
-
-        if (document.querySelector(`#film-select option[value="${currentVal}"]`)) {
-            dom.reciprocity.filmSelect.value = currentVal;
-        } else {
-            dom.reciprocity.filmSelect.value = 'custom';
-        }
-        handleFilmSelectChange();
-    };
-    const populateNdSelect = () => { dom.reciprocity.ndSelect.innerHTML = ''; ndFilters.forEach(f => { const opt = document.createElement('option'); opt.value = f.factor; opt.textContent = f.name; dom.reciprocity.ndSelect.appendChild(opt); }); };
-    const populateFormatSelect = () => { dom.hyperfocal.format.innerHTML = ''; sensorFormats.forEach(f => { const opt = document.createElement('option'); opt.value = f.coc; opt.textContent = f.name; dom.hyperfocal.format.appendChild(opt); }); };
-    const handleFilmSelectChange = () => { dom.reciprocity.messageArea.innerHTML = ''; const isCustom = dom.reciprocity.filmSelect.value === 'custom'; const isSavedCustom = dom.reciprocity.filmSelect.value.startsWith('custom_'); dom.reciprocity.customGroup.classList.toggle('hidden', !isCustom); dom.reciprocity.deleteArea.classList.toggle('hidden', !isSavedCustom); };
-    const openSaveModal = () => { tempPValue = parseFloat(dom.reciprocity.customInput.value); if (isNaN(tempPValue) || tempPValue <= 1.0) { showMessage(dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; } dom.modals.saveNameInput.value = ''; dom.modals.save.classList.remove('hidden'); dom.modals.saveNameInput.focus(); };
-    const closeSaveModal = () => { dom.modals.save.classList.add('hidden'); };
-    const confirmSaveCustomFilm = () => { const name = dom.modals.saveNameInput.value.trim(); if (!name) { showMessage(dom.reciprocity.messageArea, 'error', 'errorInvalidName'); return; } const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); const newFilm = { id: `custom_${Date.now()}`, name: name, p: tempPValue }; customFilms.push(newFilm); localStorage.setItem('customFilms', JSON.stringify(customFilms)); populateFilmSelect(); dom.reciprocity.filmSelect.value = newFilm.id; handleFilmSelectChange(); closeSaveModal(); };
-    const openDeleteModal = () => { const selectedOption = dom.reciprocity.filmSelect.options[dom.reciprocity.filmSelect.selectedIndex]; filmToDelete = { id: selectedOption.value, name: selectedOption.text }; dom.modals.deleteText.textContent = translations[currentLanguage].modalDeleteText.replace('{filmName}', filmToDelete.name); dom.modals.delete.classList.remove('hidden'); };
-    const closeDeleteModal = () => { dom.modals.delete.classList.add('hidden'); filmToDelete = null; };
-    const confirmDeleteFilm = () => { if (!filmToDelete) return; let customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); customFilms = customFilms.filter(f => f.id !== filmToDelete.id); localStorage.setItem('customFilms', JSON.stringify(customFilms)); populateFilmSelect(); closeDeleteModal(); };
-    const playBeep = () => { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); const osc = audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2); };
-    const stopTimer = () => { clearInterval(timerInterval); clearInterval(alarmInterval); timerInterval = alarmInterval = null; document.body.classList.remove('flashing'); dom.panels.reciprocity.classList.remove('hidden'); dom.panels.hyperfocal.classList.add('hidden'); dom.tabs.reciprocity.click(); dom.timer.card.classList.add('hidden'); };
-    const startTimer = (totalSeconds) => { dom.panels.reciprocity.classList.add('hidden'); dom.panels.hyperfocal.classList.add('hidden'); dom.timer.card.classList.remove('hidden'); let remaining = Math.round(totalSeconds); dom.timer.display.textContent = formatTime(remaining, false); timerInterval = setInterval(() => { remaining--; dom.timer.display.textContent = formatTime(remaining, false); if (remaining <= 0) { clearInterval(timerInterval); dom.timer.display.textContent = translations[currentLanguage].timerComplete; alarmInterval = setInterval(() => { playBeep(); document.body.classList.toggle('flashing'); }, 1000); } }, 1000); };
-
-    const init = () => {
-        setLanguage(localStorage.getItem('language') || 'zh');
-        dom.langSwitcher.addEventListener('click', () => { setLanguage(currentLanguage === 'zh' ? 'en' : 'zh'); });
-        dom.reciprocity.calculateBtn.addEventListener('click', handleReciprocityCalculate); dom.hyperfocal.calculateBtn.addEventListener('click', handleHyperfocalCalculate);
-        dom.reciprocity.saveBtn.addEventListener('click', openSaveModal); dom.modals.cancelSave.addEventListener('click', closeSaveModal); dom.modals.confirmSave.addEventListener('click', confirmSaveCustomFilm);
-        dom.reciprocity.deleteBtn.addEventListener('click', openDeleteModal); dom.modals.cancelDelete.addEventListener('click', closeDeleteModal); dom.modals.confirmDelete.addEventListener('click', confirmDeleteFilm);
-        dom.timer.stopBtn.addEventListener('click', stopTimer);
-        dom.tabs.reciprocity.addEventListener('click', () => { dom.tabs.reciprocity.classList.add('active'); dom.tabs.hyperfocal.classList.remove('active'); dom.panels.reciprocity.classList.remove('hidden'); dom.panels.hyperfocal.classList.add('hidden'); });
-        dom.tabs.hyperfocal.addEventListener('click', () => { dom.tabs.hyperfocal.classList.add('active'); dom.tabs.reciprocity.classList.remove('active'); dom.panels.hyperfocal.classList.remove('hidden'); dom.panels.reciprocity.classList.add('hidden'); });
-        dom.reciprocity.filmSelect.addEventListener('change', handleFilmSelectChange);
-        const clearReciprocity = () => dom.reciprocity.messageArea.innerHTML = ''; [dom.reciprocity.minInput, dom.reciprocity.secInput, dom.reciprocity.customInput, dom.reciprocity.ndSelect, dom.reciprocity.focalLengthInput, dom.reciprocity.bellowsExtensionInput].forEach(el => el.addEventListener('input', clearReciprocity));
-        const clearHyperfocal = () => dom.hyperfocal.messageArea.innerHTML = ''; [dom.hyperfocal.format, dom.hyperfocal.focalLength, dom.hyperfocal.aperture].forEach(el => el.addEventListener('input', clearHyperfocal));
-    };
-    init();
 </script>
 </body>
 </html>
