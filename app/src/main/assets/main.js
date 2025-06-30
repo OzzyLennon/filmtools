@@ -486,7 +486,7 @@ window.onload = function() {
     function _start() {
         if (window.appDataString) {
             try {
-                const data = window.appDataString; // Already an object
+                const data = JSON.parse(window.appDataString) // Already an object
                 const appData = data.appData;
                 _translations = appData.translations;
                 _filmData = appData.films;

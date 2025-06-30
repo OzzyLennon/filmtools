@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonData != null) {
                     // 为了防止 JSON 字符串中的特殊字符（如引号、换行符）破坏 JS 注入，我们对其进行转义
                     // 在这里，我们使用 backticks (`) 作为字符串分隔符，它支持多行，能更好地处理JSON字符串
-                    String script = "javascript:window.appDataString = " + jsonData + ";";
+                    // 使用反引号(`)将jsonData包裹成一个合法的JavaScript多行字符串
+                    String script = "javascript:window.appDataString = `" + jsonData + "`;";
                     view.evaluateJavascript(script, null);
                 }
             }
