@@ -18,7 +18,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <link rel="stylesheet" href="style.css">
+</head>
 </head>
 <body class="min-h-screen">
 <div class="w-full max-w-md mx-auto p-4 pt-8">
@@ -43,23 +45,72 @@
             <div id="panels-container" class="flex transition-transform duration-300 ease-in-out">
                 <div id="panel-reciprocity" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
-                        <div><label for="film-select" class="block mb-1 text-md label" data-lang-key="labelFilm"></label><select id="film-select" class="select text-sm"></select></div>
-                        <div id="delete-film-area" class="hidden text-right"> <button id="delete-film-btn" type="button" class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold" data-lang-key="deleteThisFilm"></button> </div>
+                        <div>
+                            <label for="film-select" class="block mb-1 text-md label" data-lang-key="labelFilm"></label>
+                            <select id="film-select" class="select text-sm"></select>
+                        </div>
+                        <div id="delete-film-area" class="hidden text-right">
+                            <button id="delete-film-btn" type="button" class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold" data-lang-key="deleteThisFilm"></button>
+                        </div>
                         <div id="custom-factor-group" class="hidden space-y-2">
-                            <label for="custom-factor" class="flex items-center space-x-2 text-md label"> <span data-lang-key="labelCustomFactor"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipPValue" tabindex="0">?</span> </label>
-                            <input type="number" step="any" inputmode="decimal" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
-                            <div class="text-right"> <button id="save-custom-btn" type="button" class="btn-ripple font-bold rounded-md px-4 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnSave"></button> </div>
+                            <label for="custom-factor" class="flex items-center space-x-2 text-md label">
+                                <span data-lang-key="labelCustomFactor"></span>
+                                <span class="tooltip-trigger" data-tooltip-key="tooltipPValue" tabindex="0">?</span>
+                            </label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="custom-factor" data-step="0.01">-</button>
+                                <input type="number" step="any" inputmode="decimal" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="custom-factor" data-step="0.01">+</button>
+                            </div>
+                            <div class="text-right">
+                                <button id="save-custom-btn" type="button" class="btn-ripple font-bold rounded-md px-4 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnSave"></button>
+                            </div>
                         </div>
-                        <div><label for="nd-filter-select" class="block mb-1 text-md label" data-lang-key="labelND"></label><select id="nd-filter-select" class="select text-sm"></select></div>
-                        <div class="grid grid-cols-[1fr_auto_1fr_auto] gap-x-3 items-center" style="row-gap: 1rem;">
-                            <label class="label col-span-4 flex items-center space-x-2"> <span data-lang-key="labelBellows"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipBellows" tabindex="0">?</span> </label>
-                            <input type="number" inputmode="numeric" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength"> <span class="text-gray-400">mm</span>
-                            <input type="number" inputmode="numeric" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows"> <span class="text-gray-400">mm</span>
+                        <div>
+                            <label for="nd-filter-select" class="block mb-1 text-md label" data-lang-key="labelND"></label>
+                            <select id="nd-filter-select" class="select text-sm"></select>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="label flex items-center space-x-2">
+                                <span data-lang-key="labelBellows"></span>
+                                <span class="tooltip-trigger" data-tooltip-key="tooltipBellows" tabindex="0">?</span>
+                            </label>
+                            <div class="grid grid-cols-[1fr_auto] gap-x-3 items-center">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="focal-length" data-step="1">-</button>
+                                    <input type="number" inputmode="numeric" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="focal-length" data-step="1">+</button>
+                                </div>
+                                <span class="text-gray-400">mm</span>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="bellows-extension" data-step="1">-</button>
+                                    <input type="number" inputmode="numeric" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="bellows-extension" data-step="1">+</button>
+                                </div>
+                                <span class="text-gray-400">mm</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
                             <label class="label col-span-4" data-lang-key="labelMeteredTime"></label>
-                            <input type="number" inputmode="numeric" id="metered-time-min" class="input text-center" placeholder="0"> <span class="text-gray-400" data-lang-key="unitMin"></span>
-                            <input type="number" step="any" inputmode="decimal" id="metered-time-sec" class="input text-center" placeholder="30"> <span class="text-gray-400" data-lang-key="unitSec"></span>
+                            <div class="grid grid-cols-[1fr_auto] gap-x-3 items-center">
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="metered-time-min" data-step="1">-</button>
+                                    <input type="number" inputmode="numeric" id="metered-time-min" class="input text-center" placeholder="0">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="metered-time-min" data-step="1">+</button>
+                                </div>
+                                <span class="text-gray-400" data-lang-key="unitMin"></span>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="metered-time-sec" data-step="1">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="metered-time-sec" class="input text-center" placeholder="30">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="metered-time-sec" data-step="1">+</button>
+                                </div>
+                                <span class="text-gray-400" data-lang-key="unitSec"></span>
+                            </div>
                         </div>
-                        <div><label for="shutter-speed-select" class="block mb-1 text-md label" data-lang-key="labelShutterSpeed"></label><select id="shutter-speed-select" class="select text-sm"></select></div>
+                        <div>
+                            <label for="shutter-speed-select" class="block mb-1 text-md label" data-lang-key="labelShutterSpeed"></label>
+                            <select id="shutter-speed-select" class="select text-sm"></select>
+                        </div>
                         <button id="calculate-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculate"></button>
                     </main>
                     <div id="message-area" class="mt-6"></div>
@@ -67,28 +118,98 @@
                 <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
                         <div>
-                            <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelFormat"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipFormat" tabindex="0">?</span> </label>
+                            <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label">
+                                <span data-lang-key="labelFormat"></span>
+                                <span class="tooltip-trigger" data-tooltip-key="tooltipFormat" tabindex="0">?</span>
+                            </label>
                             <select id="dof-format" class="select text-sm"></select>
                         </div>
-                        <div> <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label> <input type="number" inputmode="numeric" id="dof-focal-length" class="input" data-lang-placeholder="placeholderHfFocalLength"> </div>
-                        <div> <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label> <input type="number" step="any" inputmode="decimal" id="dof-aperture" class="input" data-lang-placeholder="placeholderHfAperture"> </div>
-                        <div> <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label> <input type="number" step="any" inputmode="decimal" id="dof-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
+
+                        <div>
+                            <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="dof-focal-length" data-step="1">-</button>
+                                <input type="number" inputmode="numeric" id="dof-focal-length" class="input text-center" data-lang-placeholder="placeholderHfFocalLength">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="dof-focal-length" data-step="1">+</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="dof-aperture" data-step="0.1">-</button>
+                                <input type="number" step="any" inputmode="decimal" id="dof-aperture" class="input text-center" data-lang-placeholder="placeholderHfAperture">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="dof-aperture" data-step="0.1">+</button>
+                            </div>
+                            <div id="aperture-quick-select" class="quick-select-bar"></div>
+                        </div>
+
+                        <div>
+                            <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label>
+                            <input type="number" step="any" inputmode="decimal" id="dof-distance" class="input" data-lang-placeholder="placeholderDistance">
+                        </div>
                         <button id="calculate-dof-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculateDof"></button>
                     </main>
                     <div id="dof-message-area" class="mt-6"></div>
                 </div>
                 <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
-                        <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label><div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio" id="calc-aperture" name="flash-mode" value="aperture" class="hidden" checked><label for="calc-aperture" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md" data-lang-key="calcModeAperture"></label><input type="radio" id="calc-distance" name="flash-mode" value="distance" class="hidden"><label for="calc-distance" class="w-full text-center px-4 py-2 text-sm font-medium border-y" data-lang-key="calcModeDistance"></label><input type="radio" id="calc-power" name="flash-mode" value="power" class="hidden"><label for="calc-power" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md" data-lang-key="calcModePower"></label></div></div>
                         <div>
-                            <label for="flash-gn" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelGuideNumber"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipGN" tabindex="0">?</span> </label>
-                            <input type="number" inputmode="numeric" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
+                            <label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label>
+                            <div class="flex rounded-md shadow-sm radio-group" role="group">
+                                <input type="radio" id="calc-aperture" name="flash-mode" value="aperture" class="hidden" checked>
+                                <label for="calc-aperture" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md" data-lang-key="calcModeAperture"></label>
+                                <input type="radio" id="calc-distance" name="flash-mode" value="distance" class="hidden">
+                                <label for="calc-distance" class="w-full text-center px-4 py-2 text-sm font-medium border-y" data-lang-key="calcModeDistance"></label>
+                                <input type="radio" id="calc-power" name="flash-mode" value="power" class="hidden">
+                                <label for="calc-power" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md" data-lang-key="calcModePower"></label>
+                            </div>
                         </div>
-                        <div> <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label> <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100"> </div>
-                        <div><label for="flash-modifier" class="block mb-1 text-md label" data-lang-key="labelModifier"></label><select id="flash-modifier" class="select text-sm"></select></div>
-                        <div id="flash-aperture-group"> <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label> <input type="number" step="any" inputmode="decimal" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture"> </div>
-                        <div id="flash-distance-group"> <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label> <input type="number" step="any" inputmode="decimal" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
-                        <div id="flash-power-group"> <label for="flash-power" class="block mb-1 text-md label" data-lang-key="labelFlashPower"></label> <select id="flash-power" class="select text-sm"></select> </div>
+                        <div>
+                            <label for="flash-gn" class="flex items-center space-x-2 mb-1 text-md label">
+                                <span data-lang-key="labelGuideNumber"></span>
+                                <span class="tooltip-trigger" data-tooltip-key="tooltipGN" tabindex="0">?</span>
+                            </label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-gn" data-step="1">-</button>
+                                <input type="number" inputmode="numeric" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-gn" data-step="1">+</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-iso" data-step="10">-</button>
+                                <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-iso" data-step="10">+</button>
+                            </div>
+                            <div id="iso-quick-select" class="quick-select-bar"></div>
+                        </div>
+                        <div>
+                            <label for="flash-modifier" class="block mb-1 text-md label" data-lang-key="labelModifier"></label>
+                            <select id="flash-modifier" class="select text-sm"></select>
+                        </div>
+                        <div id="flash-aperture-group">
+                            <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-aperture" data-step="0.1">-</button>
+                                <input type="number" step="any" inputmode="decimal" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-aperture" data-step="0.1">+</button>
+                            </div>
+                            <div id="flash-aperture-quick-select" class="quick-select-bar"></div>
+                        </div>
+                        <div id="flash-distance-group">
+                            <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label>
+                            <div class="input-stepper">
+                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-distance" data-step="0.5">-</button>
+                                <input type="number" step="any" inputmode="decimal" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance">
+                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-distance" data-step="0.5">+</button>
+                            </div>
+                        </div>
+                        <div id="flash-power-group">
+                            <label for="flash-power" class="block mb-1 text-md label" data-lang-key="labelFlashPower"></label>
+                            <select id="flash-power" class="select text-sm"></select>
+                        </div>
                         <button id="calculate-flash-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnFlashCalculate"></button>
                     </main>
                     <div id="flash-message-area" class="mt-6"></div>

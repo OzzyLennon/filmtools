@@ -14,7 +14,33 @@ window.onload = function() {
     const _playBeep = () => { if (!_audioCtx) _audioCtx = new(window.AudioContext || window.webkitAudioContext)(); const osc = _audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, _audioCtx.currentTime); osc.connect(_audioCtx.destination); osc.start(); osc.stop(_audioCtx.currentTime + 0.2); };
     const _restrictInputToNumeric = (e) => { if ([46, 8, 9, 27, 13, 110, 190, 37, 39].includes(e.keyCode) || (e.keyCode === 65 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 88 && (e.ctrlKey || e.metaKey))) { if ((e.keyCode === 190 || e.keyCode === 110) && e.target.value.includes('.')) e.preventDefault(); return; } if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) e.preventDefault(); };
     const _cleanNumericInput = (e) => { e.target.value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1'); };
-    const _createRipple = (e) => { const btn=e.currentTarget; const r=document.createElement("span"); const rect=btn.getBoundingClientRect(); r.style.left=`${e.clientX-rect.left}px`; r.style.top=`${e.clientY-rect.top}px`; r.classList.add("ripple"); const existing=btn.querySelector(".ripple"); if (existing) existing.remove(); btn.appendChild(r); };
+    // 旧代码
+    // const _createRipple = (e) => { const btn=e.currentTarget; const r=document.createElement("span"); const rect=btn.getBoundingClientRect(); r.style.left=`${e.clientX-rect.left}px`; r.style.top=`${e.clientY-rect.top}px`; r.classList.add("ripple"); const existing=btn.querySelector(".ripple"); if (existing) existing.remove(); btn.appendChild(r); };
+
+    // 新代码
+    const _createRipple = (e) => {
+        const btn = e.currentTarget;
+
+        // 按下动效
+        anime.remove(btn); // 移除之前的动画，防止冲突
+        anime({
+            targets: btn,
+            scale: [1, 0.95], // 从100%大小缩放到95%
+            duration: 200,
+            easing: 'easeOutQuad',
+            direction: 'alternate' // 动画会反向播放，回到原样
+        });
+
+        // 创建涟漪
+        const r = document.createElement("span");
+        const rect = btn.getBoundingClientRect();
+        r.style.left = `${e.clientX - rect.left}px`;
+        r.style.top = `${e.clientY - rect.top}px`;
+        r.classList.add("ripple");
+        const existing = btn.querySelector(".ripple");
+        if (existing) existing.remove();
+        btn.appendChild(r);
+    };
     const _debounce = (func, wait) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; };
     const _setTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); _dom.themeSwitcher.innerHTML = theme === 'dark' ? sunIcon : moonIcon; _dom.themeSwitcher.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'); document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#0D1117' : '#ffffff'); };
     const _populateGenericSelect = (selectEl, data, textKey, valueKey) => { const langData = _translations[_currentLanguage]; selectEl.innerHTML = ''; data.forEach(item => { const opt = document.createElement('option'); opt.value = item[valueKey]; opt.textContent = langData[item[textKey]] || item[textKey] || item.name; selectEl.appendChild(opt); }); };
@@ -24,7 +50,81 @@ window.onload = function() {
     const _setLanguage = (lang) => { _currentLanguage = lang; localStorage.setItem('language', lang); document.documentElement.lang = lang; const langData = _translations[lang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (key === 'btnConfirmDelete' && el.id === 'cancel-delete-btn') { el.textContent = langData['btnCancel']; } else { el.textContent = langData[key] || ''; }}); document.querySelectorAll('[data-lang-placeholder]').forEach(el => { el.placeholder = langData[el.dataset.langPlaceholder] || ""; }); if(_dom.langSwitcher) _dom.langSwitcher.textContent = langData.langSwitch; _populateAllSelects(); };
     const _handleFilmSelectChange = () => { _dom.reciprocity.messageArea.innerHTML = ''; const isCustom = _dom.reciprocity.filmSelect.value === 'custom'; const isSavedCustom = _dom.reciprocity.filmSelect.value?.startsWith('custom_'); _dom.reciprocity.customGroup.classList.toggle('hidden', !isCustom); _dom.reciprocity.deleteArea.classList.toggle('hidden', !isSavedCustom); };
     const _updateFlashUI = (mode) => { _dom.flash.apertureGroup.classList.toggle('hidden', mode === 'aperture'); _dom.flash.distanceGroup.classList.toggle('hidden', mode === 'distance'); _dom.flash.powerGroup.classList.toggle('hidden', mode === 'power'); _dom.flash.messageArea.innerHTML = ''; };
-    const _showMessage = (area, type, titleKey, content, finalTime) => { let cardHtml = ''; const langData = _translations[_currentLanguage]; let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : ''; if (type === 'result' && area === _dom.reciprocity.messageArea) { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-lg result-label">${title}</p><p class="text-4xl result-text mb-4">${content}</p><button id="start-timer-btn" type="button" data-time="${finalTime}" class="text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center mt-4 btn-ripple" style="background-color: var(--success-color);">${langData.btnStartTimer}</button></div>`; } else if (type === 'result') { cardHtml = `<div class="card p-5 text-center fade-in">${content}</div>`; } else if (type === 'info') { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-xl font-bold mb-2">${title}</p><p>${langData[titleKey].content}</p></div>`; } else { cardHtml = `<div class="error-message p-4 text-center fade-in"><p class="font-bold">${title}</p><p>${langData[titleKey].content || content}</p></div>`; } area.innerHTML = cardHtml; const startTimerBtn = document.getElementById('start-timer-btn'); if (startTimerBtn) { startTimerBtn.addEventListener('click', e => _startTimer(parseFloat(e.target.dataset.time))); startTimerBtn.addEventListener("click", _createRipple); } };
+    // 旧代码
+    // const _showMessage = (area, type, titleKey, content, finalTime) => { let cardHtml = ''; const langData = _translations[_currentLanguage]; let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : ''; if (type === 'result' && area === _dom.reciprocity.messageArea) { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-lg result-label">${title}</p><p class="text-4xl result-text mb-4">${content}</p><button id="start-timer-btn" type="button" data-time="${finalTime}" class="text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center mt-4 btn-ripple" style="background-color: var(--success-color);">${langData.btnStartTimer}</button></div>`; } else if (type === 'result') { cardHtml = `<div class="card p-5 text-center fade-in">${content}</div>`; } else if (type === 'info') { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-xl font-bold mb-2">${title}</p><p>${langData[titleKey].content}</p></div>`; } else { cardHtml = `<div class="error-message p-4 text-center fade-in"><p class="font-bold">${title}</p><p>${langData[titleKey].content || content}</p></div>`; } area.innerHTML = cardHtml; const startTimerBtn = document.getElementById('start-timer-btn'); if (startTimerBtn) { startTimerBtn.addEventListener('click', e => _startTimer(parseFloat(e.target.dataset.time))); startTimerBtn.addEventListener("click", _createRipple); } };
+
+    // 新代码
+    const _showMessage = (area, type, titleKey, content, finalTime) => {
+        area.innerHTML = ''; // 先清空区域
+        const langData = _translations[_currentLanguage];
+        let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : '';
+        let cardHtml = '';
+
+        // 1. 创建卡片的HTML结构
+        const cardId = `card-${Date.now()}`; // 为卡片创建一个唯一ID
+        const cardClasses = type === 'error' ? 'error-message p-4 text-center' : 'card p-5 text-center';
+
+        if (type === 'result' && area === _dom.reciprocity.messageArea) {
+            // 为需要滚动的数字创建一个带ID的span
+            cardHtml = `<div id="${cardId}" class="${cardClasses}" style="opacity:0">
+                            <p class="text-lg result-label">${title}</p>
+                            <p id="animated-result" class="text-4xl result-text mb-4">0</p>
+                            <button id="start-timer-btn" type="button" data-time="${finalTime}" class="text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center mt-4 btn-ripple" style="background-color: var(--success-color);">${langData.btnStartTimer}</button>
+                        </div>`;
+        } else if (type === 'result') {
+            cardHtml = `<div id="${cardId}" class="${cardClasses}" style="opacity:0">${content}</div>`;
+        } else { // info 和 error
+            const messageContent = langData[titleKey]?.content || content || '';
+            cardHtml = `<div id="${cardId}" class="${cardClasses}" style="opacity:0">
+                            <p class="font-bold">${title}</p>
+                            <p>${messageContent}</p>
+                        </div>`;
+        }
+
+        area.innerHTML = cardHtml;
+
+        const cardElement = document.getElementById(cardId);
+
+        // 2. 实现卡片入场动画
+        anime({
+            targets: cardElement,
+            opacity: [0, 1],
+            translateY: [20, 0], // 从下方20px处移入
+            scale: [0.95, 1],    // 从95%大小放大到100%
+            duration: 500,
+            easing: 'easeOutCubic'
+        });
+
+        // 3. 如果是倒易律结果，执行数字滚动动画
+        const animatedResultEl = document.getElementById('animated-result');
+        if (animatedResultEl && isFinite(finalTime) && finalTime > 0) {
+            const animationParams = { value: finalTime };
+            anime({
+                targets: animationParams,
+                value: [0, finalTime],
+                duration: 1200,
+                easing: 'easeOutQuint',
+                round: 100, // 保留两位小数
+                update: function() {
+                    animatedResultEl.innerHTML = _formatTime(animationParams.value);
+                },
+                complete: function() {
+                    // 动画结束后显示最终的精确格式化时间
+                    animatedResultEl.innerHTML = _formatTime(finalTime);
+                }
+            });
+        } else if(animatedResultEl) {
+            // 如果不是需要动画的有效数字，直接显示内容
+            animatedResultEl.innerHTML = content;
+        }
+
+
+        const startTimerBtn = document.getElementById('start-timer-btn');
+        if (startTimerBtn) {
+            startTimerBtn.addEventListener('click', e => _startTimer(parseFloat(e.target.dataset.time)));
+            startTimerBtn.addEventListener("click", _createRipple);
+        }
+    };
 
     const _evaluateFormula = (formula, tm) => {
         const { pow, log10, sqrt } = Math;
@@ -117,6 +217,161 @@ window.onload = function() {
         });
 
         _dom.mainContent.style.visibility = 'visible';
+
+        // ... 在 _initializeApp 函数内部 ...
+
+        // --- 输入体验优化逻辑 ---
+        //const standardApertures = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22];
+        //const apertureQuickSelectBar = document.getElementById('aperture-quick-select');
+        // 旧的 "输入体验优化逻辑" 部分可以整个删除或注释掉
+
+        // --- 新的、更完整的输入体验优化逻辑 ---
+        const standardApertures = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22];
+        const standardIsos = [50, 100, 200, 400, 800, 1600, 3200];
+
+        // 1. 动态创建快速选择按钮 (Chips)
+        function createQuickChips(containerId, values, prefix = '', suffix = '') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            values.forEach(val => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'quick-select-chip';
+                chip.textContent = `${prefix}${val}${suffix}`;
+                chip.dataset.value = val;
+                chip.dataset.family = containerId; // 标记同组按钮
+                container.appendChild(chip);
+            });
+        }
+        createQuickChips('aperture-quick-select', standardApertures, 'f/');
+        createQuickChips('flash-aperture-quick-select', standardApertures, 'f/');
+        createQuickChips('iso-quick-select', standardIsos);
+
+
+        // 2. 为所有快速选择按钮和步进器按钮添加统一的事件委托监听
+        document.getElementById('main-content').addEventListener('click', function(e) {
+            const target = e.target;
+
+            // A. 处理步进器按钮 (+/-)
+            if (target.classList.contains('stepper-btn')) {
+                const inputId = target.dataset.target;
+                const step = parseFloat(target.dataset.step);
+                const inputEl = document.getElementById(inputId);
+                if (!inputEl) return;
+
+                let currentValue = parseFloat(inputEl.value) || 0;
+                if (target.classList.contains('stepper-plus')) {
+                    currentValue += step;
+                } else {
+                    currentValue -= step;
+                }
+
+                // 保证数值不小于0，并处理浮点数精度问题
+                inputEl.value = Math.max(0, parseFloat(currentValue.toFixed(4)));
+                // 手动触发input事件，以便状态保存逻辑能捕捉到变化
+                inputEl.dispatchEvent(new Event('input'));
+            }
+
+            // B. 处理快速选择按钮 (Chips)
+            if (target.classList.contains('quick-select-chip')) {
+                const value = target.dataset.value;
+                const family = target.dataset.family;
+                let inputEl;
+
+                // 根据按钮组确定要操作的输入框
+                if (family === 'aperture-quick-select') {
+                    inputEl = document.getElementById('dof-aperture');
+                } else if (family === 'flash-aperture-quick-select') {
+                    inputEl = document.getElementById('flash-aperture');
+                } else if (family === 'iso-quick-select') {
+                    inputEl = document.getElementById('flash-iso');
+                }
+
+                if (inputEl) {
+                    inputEl.value = value;
+                    inputEl.dispatchEvent(new Event('input')); // 同样触发事件
+                }
+            }
+        });
+
+        // 3. 监听输入框变化，同步快速选择按钮的激活状态
+        function syncChipsToInput(inputId, chipFamily) {
+            const inputEl = document.getElementById(inputId);
+            const chips = document.querySelectorAll(`.quick-select-chip[data-family="${chipFamily}"]`);
+            if (!inputEl || chips.length === 0) return;
+
+            inputEl.addEventListener('input', function() {
+                const currentValue = parseFloat(this.value);
+                chips.forEach(chip => {
+                    chip.classList.toggle('active', parseFloat(chip.dataset.value) === currentValue);
+                });
+            });
+            // 初始化时也检查一次
+            inputEl.dispatchEvent(new Event('input'));
+        }
+
+        syncChipsToInput('dof-aperture', 'aperture-quick-select');
+        syncChipsToInput('flash-aperture', 'flash-aperture-quick-select');
+        syncChipsToInput('flash-iso', 'iso-quick-select');
+        // --- 输入体验优化逻辑结束 ---
+
+        // 1. 动态创建光圈快速选择按钮
+        standardApertures.forEach(f => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'quick-select-chip';
+            chip.textContent = `f/${f}`;
+            chip.dataset.value = f;
+            apertureQuickSelectBar.appendChild(chip);
+        });
+
+        // 2. 为所有快速选择按钮和步进器按钮添加统一的事件监听
+        document.addEventListener('click', function(e) {
+            const target = e.target;
+
+            // 处理步进器按钮
+            if (target.classList.contains('stepper-btn')) {
+                const inputId = target.dataset.target;
+                const step = parseFloat(target.dataset.step);
+                const inputEl = document.getElementById(inputId);
+                if (!inputEl) return;
+
+                let currentValue = parseFloat(inputEl.value) || 0;
+                if (target.classList.contains('stepper-plus')) {
+                    currentValue += step;
+                } else {
+                    currentValue -= step;
+                }
+
+                // 保证数值不小于0，并处理浮点数精度问题
+                inputEl.value = Math.max(0, parseFloat(currentValue.toFixed(2)));
+                // 手动触发input事件，以便我们的状态保存逻辑能捕捉到变化
+                inputEl.dispatchEvent(new Event('input'));
+            }
+
+            // 处理光圈快速选择按钮
+            if (target.classList.contains('quick-select-chip')) {
+                const value = target.dataset.value;
+                const apertureInput = document.getElementById('dof-aperture');
+                apertureInput.value = value;
+                apertureInput.dispatchEvent(new Event('input'));
+
+                // 更新快速选择按钮的激活状态
+                document.querySelectorAll('.quick-select-chip').forEach(c => c.classList.remove('active'));
+                target.classList.add('active');
+            }
+        });
+
+        // 3. 监听光圈输入框，以同步快速选择按钮的激活状态
+        const dofApertureInput = document.getElementById('dof-aperture');
+        dofApertureInput.addEventListener('input', function() {
+            const currentValue = parseFloat(this.value);
+            document.querySelectorAll('.quick-select-chip').forEach(chip => {
+                chip.classList.toggle('active', parseFloat(chip.dataset.value) === currentValue);
+            });
+        });
+
+        // ... 函数内其他代码 ...
 
         const debouncedSaveState = _debounce(_saveState, 500);
 
