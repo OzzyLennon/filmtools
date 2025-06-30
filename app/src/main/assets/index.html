@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>胶片摄影工具箱</title>
-    <!-- PWA & Mobile meta tags -->
     <meta name="theme-color" content="#0D1117">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -23,12 +22,24 @@
         :root { --transition-speed: 0.2s; }
         [data-theme="dark"] { --bg-primary: #0D1117; --bg-secondary: #161B22; --text-primary: #E6EDF3; --text-secondary: #8B949E; --accent-primary: #33D7FF; --accent-primary-text: #0D1117; --accent-secondary: #FF00E6; --border-color: #30363D; --error-color: #F85149; --success-color: #2DA44E; }
         [data-theme="light"] { --bg-primary: #ffffff; --bg-secondary: #f6f8fa; --text-primary: #24292f; --text-secondary: #57606a; --accent-primary: #0969da; --accent-primary-text: #ffffff; --accent-secondary: #8250df; --border-color: #d0d7de; --error-color: #d73a49; --success-color: #2DA44E; }
-        body { font-family: 'Inter', 'Roboto', sans-serif; background-color: var(--bg-primary); color: var(--text-primary); transition: background-color var(--transition-speed), color var(--transition-speed); }
+
+        body {
+            font-family: 'Inter', 'Roboto', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            display: flex;
+            justify-content: center;
+        }
+
         .app-title { color: var(--text-primary); font-weight: 900; }
         .subtitle { color: var(--accent-secondary); }
         .label { color: var(--text-secondary); font-weight: 500; }
         .result-label { color: var(--text-secondary); }
         .result-text { color: var(--accent-primary); font-weight: 700; }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
         .input, .select { background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem; border-radius: 0.375rem; width: 100%; font-size: 1rem; transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed); }
         .input:focus, .select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
         .select { appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25em; padding-right: 2.5rem !important; }
@@ -56,23 +67,26 @@
             color: var(--bg-primary); font-size: 0.75rem; font-weight: bold; cursor: help;
             user-select: none; -webkit-user-select: none;
         }
-        .tooltip-trigger::after {
-            content: attr(data-tooltip); position: absolute;
-            bottom: 150%;
-            left: 50%; transform: translateX(-50%);
-            background-color: var(--bg-secondary); color: var(--text-primary); padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem; font-size: 0.875rem; font-weight: 400;
-            width: max-content; max-width: 250px; white-space: normal; text-align: left;
-            z-index: 20;
-            pointer-events: none; opacity: 0; transition: opacity 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border-color);
-        }
-        .tooltip-trigger:hover::after, .tooltip-trigger:focus::after { opacity: 1; }
         [tabindex] { outline: none; }
-        .card:has(.tooltip-trigger:hover),
-        .card:has(.tooltip-trigger:focus-within) {
-            position: relative;
-            z-index: 10;
+        #global-tooltip {
+            position: absolute;
+            background-color: var(--bg-secondary); color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem; font-weight: 400;
+            width: max-content; max-width: 250px;
+            text-align: left;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            visibility: hidden;
+        }
+        #global-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
@@ -89,64 +103,61 @@
         </div>
     </header>
 
-    <div id="main-content">
+    <div id="main-content" style="visibility: hidden;">
         <div class="flex mb-4" role="tablist" aria-label="Calculators" style="border-bottom: 1px solid var(--border-color);">
             <button id="tab-reciprocity" type="button" role="tab" aria-selected="true" class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
             <button id="tab-dof" type="button" role="tab" aria-selected="false" class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
             <button id="tab-flash" type="button" role="tab" aria-selected="false" class="tab-button grow p-3 font-bold" data-lang-key="tabFlash"></button>
         </div>
-        <div class="overflow-hidden">
+        <div id="panels-wrapper" class="overflow-hidden">
             <div id="panels-container" class="flex transition-transform duration-300 ease-in-out">
-                <!-- reciprocity panel -->
                 <div id="panel-reciprocity" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
                         <div><label for="film-select" class="block mb-1 text-md label" data-lang-key="labelFilm"></label><select id="film-select" class="select text-sm"></select></div>
                         <div id="delete-film-area" class="hidden text-right"> <button id="delete-film-btn" type="button" class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold" data-lang-key="deleteThisFilm"></button> </div>
                         <div id="custom-factor-group" class="hidden space-y-2">
                             <label for="custom-factor" class="flex items-center space-x-2 text-md label"> <span data-lang-key="labelCustomFactor"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipPValue" tabindex="0">?</span> </label>
-                            <input type="text" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
+                            <input type="number" step="any" inputmode="decimal" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
                             <div class="text-right"> <button id="save-custom-btn" type="button" class="btn-ripple font-bold rounded-md px-4 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnSave"></button> </div>
                         </div>
                         <div><label for="nd-filter-select" class="block mb-1 text-md label" data-lang-key="labelND"></label><select id="nd-filter-select" class="select text-sm"></select></div>
                         <div class="grid grid-cols-[1fr_auto_1fr_auto] gap-x-3 items-center" style="row-gap: 1rem;">
                             <label class="label col-span-4 flex items-center space-x-2"> <span data-lang-key="labelBellows"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipBellows" tabindex="0">?</span> </label>
-                            <input type="text" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength"> <span class="text-gray-400">mm</span>
-                            <input type="text" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows"> <span class="text-gray-400">mm</span>
+                            <input type="number" inputmode="numeric" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength"> <span class="text-gray-400">mm</span>
+                            <input type="number" inputmode="numeric" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows"> <span class="text-gray-400">mm</span>
                             <label class="label col-span-4" data-lang-key="labelMeteredTime"></label>
-                            <input type="text" id="metered-time-min" class="input text-center" placeholder="0"> <span class="text-gray-400" data-lang-key="unitMin"></span>
-                            <input type="text" id="metered-time-sec" class="input text-center" placeholder="30"> <span class="text-gray-400" data-lang-key="unitSec"></span>
+                            <input type="number" inputmode="numeric" id="metered-time-min" class="input text-center" placeholder="0"> <span class="text-gray-400" data-lang-key="unitMin"></span>
+                            <input type="number" step="any" inputmode="decimal" id="metered-time-sec" class="input text-center" placeholder="30"> <span class="text-gray-400" data-lang-key="unitSec"></span>
                         </div>
                         <div><label for="shutter-speed-select" class="block mb-1 text-md label" data-lang-key="labelShutterSpeed"></label><select id="shutter-speed-select" class="select text-sm"></select></div>
                         <button id="calculate-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculate"></button>
                     </main>
                     <div id="message-area" class="mt-6"></div>
                 </div>
-                <!-- dof panel -->
                 <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
                         <div>
                             <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelFormat"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipFormat" tabindex="0">?</span> </label>
                             <select id="dof-format" class="select text-sm"></select>
                         </div>
-                        <div> <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label> <input type="text" id="dof-focal-length" class="input" data-lang-placeholder="placeholderHfFocalLength"> </div>
-                        <div> <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label> <input type="text" id="dof-aperture" class="input" data-lang-placeholder="placeholderHfAperture"> </div>
-                        <div> <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label> <input type="text" id="dof-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
+                        <div> <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label> <input type="number" inputmode="numeric" id="dof-focal-length" class="input" data-lang-placeholder="placeholderHfFocalLength"> </div>
+                        <div> <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label> <input type="number" step="any" inputmode="decimal" id="dof-aperture" class="input" data-lang-placeholder="placeholderHfAperture"> </div>
+                        <div> <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label> <input type="number" step="any" inputmode="decimal" id="dof-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
                         <button id="calculate-dof-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculateDof"></button>
                     </main>
                     <div id="dof-message-area" class="mt-6"></div>
                 </div>
-                <!-- flash panel -->
                 <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
                         <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label><div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio" id="calc-aperture" name="flash-mode" value="aperture" class="hidden" checked><label for="calc-aperture" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md" data-lang-key="calcModeAperture"></label><input type="radio" id="calc-distance" name="flash-mode" value="distance" class="hidden"><label for="calc-distance" class="w-full text-center px-4 py-2 text-sm font-medium border-y" data-lang-key="calcModeDistance"></label><input type="radio" id="calc-power" name="flash-mode" value="power" class="hidden"><label for="calc-power" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md" data-lang-key="calcModePower"></label></div></div>
                         <div>
                             <label for="flash-gn" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelGuideNumber"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipGN" tabindex="0">?</span> </label>
-                            <input type="text" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
+                            <input type="number" inputmode="numeric" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
                         </div>
-                        <div> <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label> <input type="text" id="flash-iso" class="input" value="100"> </div>
+                        <div> <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label> <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100"> </div>
                         <div><label for="flash-modifier" class="block mb-1 text-md label" data-lang-key="labelModifier"></label><select id="flash-modifier" class="select text-sm"></select></div>
-                        <div id="flash-aperture-group"> <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label> <input type="text" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture"> </div>
-                        <div id="flash-distance-group"> <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label> <input type="text" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
+                        <div id="flash-aperture-group"> <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label> <input type="number" step="any" inputmode="decimal" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture"> </div>
+                        <div id="flash-distance-group"> <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label> <input type="number" step="any" inputmode="decimal" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance"> </div>
                         <div id="flash-power-group"> <label for="flash-power" class="block mb-1 text-md label" data-lang-key="labelFlashPower"></label> <select id="flash-power" class="select text-sm"></select> </div>
                         <button id="calculate-flash-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnFlashCalculate"></button>
                     </main>
@@ -155,83 +166,23 @@
             </div>
         </div>
     </div>
-    <!-- ... Modals ... -->
     <div id="timer-card" class="hidden text-center p-6 timer-card"> <h2 id="timer-display" class="text-6xl font-bold mb-6">00:00</h2> <button id="stop-timer-btn" type="button" class="bg-red-600 text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnStopTimer"></button> </div> <div id="save-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 50;"> <div class="card p-6 w-full max-w-sm"> <h3 class="text-xl font-bold mb-4" data-lang-key="modalSaveTitle"></h3> <label for="custom-film-name" class="block mb-1 text-md label" data-lang-key="modalSaveLabel"></label> <input type="text" id="custom-film-name" class="input" data-lang-placeholder="modalSavePlaceholder"> <div class="flex justify-end space-x-4 mt-6"> <button id="cancel-save-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnCancel"></button> <button id="confirm-save-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnConfirmSave"></button> </div> </div> </div> <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 50;"> <div class="card p-6 w-full max-w-sm"> <h3 class="text-xl font-bold mb-4" data-lang-key="modalDeleteTitle"></h3> <p id="delete-confirm-text" class="mb-6"></p> <div class="flex justify-end space-x-4"> <button id="cancel-delete-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnCancel"></button> <button id="confirm-delete-btn" type="button" class="btn-ripple text-white font-bold rounded-lg px-5 py-2" style="background-color: var(--error-color);" data-lang-key="btnConfirmDelete"></button> </div> </div> </div>
 </div>
+<div id="global-tooltip"></div>
 
 <script>
     window.onload = function() {
         // --- DATA AND CONFIGURATION ---
-        const _translations = {
-             en: {
-                title: "Film Photography Toolkit", subtitle: "Precise calculation for your creation", langSwitch: "中", tabReciprocity: "Reciprocity", tabDof: "DOF/Hyperfocal", tabFlash: "Flash",
-                labelFilm: "Select Film", customFilmOption: "Custom Film...", deleteThisFilm: "Delete this film", labelCustomFactor: "Custom Reciprocity Factor (p)", placeholderPValue: "e.g., 1.31", btnSave: "Save",
-                labelND: "Select ND Filter (Optional)", labelBellows: "Bellows Comp. (Optional)", placeholderFocalLength: "Focal L.", placeholderBellows: "Bellows Ext.",
-                labelMeteredTime: "Metered Time", unitMin: "min", unitSec: "sec", btnCalculate: "Calculate Exposure", labelShutterSpeed: "Or Quick Select Shutter Speed", placeholderShutterSpeed: "Select a common speed...",
-                labelFormat: "Select Format", labelHfFocalLength: "Focal Length (mm)", placeholderHfFocalLength: "e.g., 50", labelHfAperture: "Aperture (f/)", placeholderHfAperture: "e.g., 8",
-                labelFocusDistance: "Focus Distance (m)", placeholderDistance: "e.g., 3.5 (meters)", btnCalculateDof: "Calculate DOF & Hyperfocal",
-                btnStartTimer: "Start Timer", btnStopTimer: "Stop Timer", timerComplete: "Done!",
-                labelCalcMode: "Calculation Mode", calcModeAperture: "Aperture", calcModeDistance: "Distance", calcModePower: "Power", labelGuideNumber: "Guide Number (GN) @ ISO 100", placeholderGuideNumber: "e.g., 40 (meters)",
-                labelISO: "Film ISO", labelFlashPower: "Flash Power", labelDistance: "Distance to Subject (m)", labelFlashAperture: "Aperture (f/)", placeholderFlashAperture: "e.g., 5.6", btnFlashCalculate: "Calculate",
-                labelModifier: "Flash Modifier (Optional)",
-                modalSaveTitle: "Save Custom Film", modalSaveLabel: "Film Name", modalSavePlaceholder: "e.g., My HP5+", btnCancel: "Cancel", btnConfirmSave: "Confirm & Save",
-                modalDeleteTitle: "Confirm Deletion", modalDeleteText: "Are you sure you want to delete '{filmName}'? This action cannot be undone.", btnConfirmDelete: "Confirm Delete",
-                errorInvalidTime: { title: "Invalid Input", content: "Please enter a valid time greater than 0." }, errorInvalidName: { title: "Invalid Name", content: "Please enter a name for the film." },
-                errorDuplicateName: { title: "Duplicate Name", content: "A film with this name already exists." }, errorInvalidFactor: { title: "Invalid Factor", content: "Please enter a reciprocity factor (p-value) greater than 1." },
-                errorNoFilm: { title: "Error", content: "Selected film not found." }, errorOutOfRange: { title: "Out of Range", content: "Official data for this exposure time is unknown. Please consult the datasheet or test it." },
-                errorInvalidDof: { title: "Invalid Input", content: "Please enter all valid values for calculation." }, errorInvalidFlash: { title: "Invalid Input", content: "Please enter all required valid values." },
-                resultCorrectedTime: "Corrected Exposure", resultDofNear: "Near Limit", resultDofFar: "Far Limit", resultDofTotal: "Total DOF", resultHyperfocal: "Hyperfocal",
-                resultAperture: "Required Aperture", resultDistance: "Max Distance", resultPower: "Recommended Power",
-                infoNoCompensation: { title: "No Compensation Needed", content: "No reciprocity failure compensation is required at this shutter speed." },
-                unitMeter: "meters", timeUnitSec: "sec", timeUnitMin: "min",
-                ndFilter_none: "None", ndFilter_2: "ND4 (2 stops)", ndFilter_3: "ND8 (3 stops)", ndFilter_6: "ND64 (6 stops)", ndFilter_10: "ND1000 (10 stops)", ndFilter_16: "ND100K (16.6 stops)",
-                format_ff: "Full Frame (35mm)", format_apsc: "APS-C", format_m43: "M4/3", format_6x6: "6x6 Medium Format", format_4x5: "4x5 Large Format",
-                flashMod_none: "None / Standard Reflector", flashMod_transUmbrella: "Translucent Umbrella (-1 stop)", flashMod_silverUmbrella: "Reflective Umbrella (Silver) (-1.5 stops)", flashMod_softbox: "Softbox (-1.5 stops)", flashMod_snoot: "Snoot (-2 stops)",
-                tooltipPValue: "The 'p' value in the Schwarzschild formula (Tc = Tm^p). A higher value means more severe reciprocity failure. Typically between 1.1 and 1.6.",
-                tooltipBellows: "Compensates for light loss when the lens is extended far from the film plane, common in large format and macro photography.",
-                tooltipGN: "Guide Number (GN) measures a flash's power. It's the max distance (m/ft) the flash can illuminate a subject at f/1 and ISO 100.",
-                tooltipFormat: "The film/sensor format determines the Circle of Confusion (CoC), a key factor for calculating Depth of Field. Larger formats have a larger CoC."
-            },
-            zh: {
-                title: "胶片摄影工具箱", subtitle: "精准计算，轻松创作", langSwitch: "EN", tabReciprocity: "倒易律", tabDof: "景深/超焦距", tabFlash: "闪光灯",
-                labelFilm: "选择胶片", customFilmOption: "自定义胶片...", deleteThisFilm: "删除此胶片", labelCustomFactor: "自定义倒易律系数 (p)", placeholderPValue: "例如: 1.31", btnSave: "保存",
-                labelND: "选择 ND 减光镜 (可选)", labelBellows: "大画幅皮腔补偿 (可选)", placeholderFocalLength: "镜头焦距", placeholderBellows: "皮腔长度",
-                labelMeteredTime: "输入相机测光时间", unitMin: "分", unitSec: "秒", btnCalculate: "计算曝光时间", labelShutterSpeed: "或快速选择快门速度 (可选)", placeholderShutterSpeed: "选择常用快门速度...",
-                labelFormat: "选择画幅", labelHfFocalLength: "输入焦距 (mm)", placeholderHfFocalLength: "例如: 50", labelHfAperture: "输入光圈 (f/)", placeholderHfAperture: "例如: 8",
-                labelFocusDistance: "对焦距离 (米)", placeholderDistance: "例如: 3.5 (米)", btnCalculateDof: "计算景深与超焦距",
-                btnStartTimer: "开始计时", btnStopTimer: "停止计时", timerComplete: "完成!",
-                labelCalcMode: "计算模式", calcModeAperture: "计算光圈", calcModeDistance: "计算距离", calcModePower: "计算功率", labelGuideNumber: "闪光指数 (GN) @ ISO 100", placeholderGuideNumber: "例如: 40 (米)",
-                labelISO: "胶片感光度", labelFlashPower: "闪光灯功率", labelDistance: "到主体的距离 (米)", labelFlashAperture: "光圈值 (f/)", placeholderFlashAperture: "例如: 5.6", btnFlashCalculate: "计算",
-                labelModifier: "闪光灯附件 (可选)",
-                modalSaveTitle: "保存自定义胶片", modalSaveLabel: "胶片名称", modalSavePlaceholder: "例如: 我的HP5+", btnCancel: "取消", btnConfirmSave: "确认保存",
-                modalDeleteTitle: "确认删除", modalDeleteText: "您确定要删除胶片 “{filmName}” 吗？此操作无法撤销。", btnConfirmDelete: "确认删除",
-                errorInvalidTime: { title: "输入无效", content: "请输入一个大于0的有效时间。" }, errorInvalidName: { title: "名称无效", content: "请输入胶片名称。" }, errorDuplicateName: { title: "名称重复", content: "一个同名的胶片已经存在。" }, errorInvalidFactor: { title: "系数无效", content: "请输入一个大于1的倒易律系数 (p 值)。" },
-                errorInvalidDof: { title: "输入无效", content: "请填写所有需要的有效数值。" }, errorInvalidFlash: { title: "输入无效", content: "请输入所有需要的有效数值。" }, errorNoFilm: { title: "错误", content: "未找到选定的胶片。" },errorOutOfRange: { title: "超出范围", content: "此曝光时间的官方数据未知。请查阅数据表或进行测试。" },
-                resultCorrectedTime: "校正后曝光时间", resultDofNear: "景深近点", resultDofFar: "景深远点", resultDofTotal: "景深全范围", resultHyperfocal: "超焦距", resultAperture: "所需光圈", resultDistance: "最大距离", resultPower: "建议功率",
-                infoNoCompensation: { title: "无需补偿", content: "在此快门速度下，无需进行倒易律失效补偿。" },
-                unitMeter: "米", timeUnitSec: "秒", timeUnitMin: "分",
-                ndFilter_none: '无', ndFilter_2: 'ND4 (2档)', ndFilter_3: 'ND8 (3档)', ndFilter_6: 'ND64 (6档)', ndFilter_10: 'ND1000 (10档)', ndFilter_16: 'ND100K (16.6档)',
-                format_ff: '全画幅 (35mm)', format_apsc: 'APS-C', format_m43: 'M4/3', format_6x6: '6x6 中画幅', format_4x5: '4x5 大画幅',
-                flashMod_none: '无 / 标准反光罩', flashMod_transUmbrella: '透射伞 (-1档)', flashMod_silverUmbrella: '反光伞 (银色) (-1.5档)', flashMod_softbox: '柔光箱 (-1.5档)', flashMod_snoot: '束光筒 (-2档)',
-                tooltipPValue: "史瓦西公式 (Tc = Tm^p) 中的 'p' 值。p值越大，倒易律失效越严重。通常在 1.1 到 1.6 之间。",
-                tooltipBellows: "用于补偿镜头远离胶片平面（如大画幅或微距摄影）时的光线损失（光曝效应）。",
-                tooltipGN: "闪光指数 (GN) 是衡量闪光灯功率的单位，指在 ISO 100 和 f/1 光圈下，闪光灯能照亮主体的最大距离（米/英尺）。",
-                tooltipFormat: "画幅大小决定了弥散圆 (CoC) 的大小，这是计算景深的关键参数。画幅越大，弥散圆也越大。"
-            }
-        };
-        // ... The rest of the JS is identical to the previous working version ...
-        const _shutterSpeeds = [ { name: "placeholder", value: "" }, { name: "1/1000 s", value: 1/1000 }, { name: "1/500 s", value: 1/500 }, { name: "1/250 s", value: 1/250 }, { name: "1/125 s", value: 1/125 }, { name: "1/60 s", value: 1/60 }, { name: "1/30 s", value: 1/30 }, { name: "1/15 s", value: 1/15 }, { name: "1/8 s", value: 1/8 }, { name: "1/4 s", value: 1/4 }, { name: "1/2 s", value: 0.5 }, { name: "1 s", value: 1 } ];
-        const _flashPowers = [ { name: '1/1 (Full)', value: 1 }, { name: '1/2', value: 0.5 }, { name: '1/4', value: 0.25 }, { name: '1/8', value: 0.125 }, { name: '1/16', value: 0.0625 }, { name: '1/32', value: 0.03125 }, { name: '1/64', value: 0.015625 }, { name: '1/128', value: 0.0078125 } ];
-        const _flashModifiers = [ { key: 'flashMod_none', loss: 0 }, { key: 'flashMod_transUmbrella', loss: 1 }, { key: 'flashMod_silverUmbrella', loss: 1.5 }, { key: 'flashMod_softbox', loss: 1.5 }, { key: 'flashMod_snoot', loss: 2 } ];
-        const _ndFilters = [ { key: 'ndFilter_none', factor: 1 }, { key: 'ndFilter_2', factor: 4 }, { key: 'ndFilter_3', factor: 8 }, { key: 'ndFilter_6', factor: 64 }, { key: 'ndFilter_10', factor: 1024 }, { key: 'ndFilter_16', factor: 100000 } ];
-        const _sensorFormats = [ { key: 'format_ff', coc: 0.030 }, { key: 'format_apsc', coc: 0.020 }, { key: 'format_m43', coc: 0.015 }, { key: 'format_6x6', coc: 0.060 }, { key: 'format_4x5', coc: 0.100 } ];
-        const _baseFilmData = [ { id: 'cinestill_800t', name: 'CineStill 800T', p: 0, calculate: (tm) => tm > 1 ? tm * 2.6 : tm }, { id: 'fomapan_100', name: 'Fomapan 100 Classic', p: 0, calculate: (tm) => { if (tm <= 1) return tm * 2; const logTm = Math.log10(tm); return tm * (Math.pow(logTm, 2) + 5 * logTm + 2); } }, { id: 'fomapan_200', name: 'Fomapan 200 Creative', p: 1.65 }, { id: 'fomapan_400', name: 'Fomapan 400 Action', p: 0, calculate: (tm) => 1.30 * Math.pow(tm, 1.90) }, { id: 'fujifilm_acros_100_ii', name: 'Fujifilm Neopan Acros 100 II', p: 0, calculate: (tm) => { if (tm <= 120) return tm; if (tm <= 1000) return tm * Math.SQRT2; return -1; } }, { id: 'fujifilm_pro_160ns', name: 'Fujifilm PRO 160NS', p: 0, calculate: (tm) => { if (tm <= 16) return tm; if (tm <= 32) return 50; return -1; } }, { id: 'fujifilm_provia_100f', name: 'Fujifilm Provia 100F', p: 0, calculate: (tm) => (tm <= 128) ? tm : -1 }, { id: 'fujifilm_velvia_50', name: 'Fujifilm Velvia 50', p: 0, calculate: (tm) => { if (tm <= 2) return tm; if (tm <= 4) return 8; if (tm <= 8) return 20; if (tm <= 15) return 50; if (tm <= 30) return 150; if (tm <= 60) return 300; return -1; } }, { id: 'fujifilm_velvia_100', name: 'Fujifilm Velvia 100', p: 0, calculate: (tm) => { if (tm <= 8) return tm * 1.5; if (tm <= 15) return 20; if (tm <= 30) return 40; if (tm <= 60) return 90; return -1; } }, { id: 'ilford_delta_100', name: 'Ilford Delta 100 Professional', p: 1.31 }, { id: 'ilford_delta_400', name: 'Ilford Delta 400 Professional', p: 1.29 }, { id: 'ilford_delta_3200', name: 'Ilford Delta 3200 Professional', p: 1.34 }, { id: 'ilford_fp4_plus', name: 'Ilford FP4 Plus', p: 1.26 }, { id: 'ilford_hp5_plus', name: 'Ilford HP5 Plus', p: 1.31 }, { id: 'ilford_pan_f_plus', name: 'Ilford Pan F Plus', p: 1.48 }, { id: 'kentmere_pan_100', name: 'Kentmere Pan 100', p: 1.35 }, { id: 'kentmere_pan_400', name: 'Kentmere Pan 400', p: 1.38 }, { id: 'kodak_ektachrome_100d_5294', name: 'Kodak Ektachrome 100D (5294)', p: 0, calculate: (tm) => tm <= 1 ? tm : tm * Math.pow(2, (1/3) * Math.log10(tm)) }, { id: 'kodak_ektachrome_e100', name: 'Kodak Ektachrome E100', p: 0, calculate: (tm) => tm <= 1 ? tm : tm * Math.pow(2, (1/3) * Math.log10(tm)) }, { id: 'kodak_ektar_100', name: 'Kodak Ektar 100', p: 0, calculate: (tm) => tm * 1.5 }, { id: 'kodak_portra_160', name: 'Kodak Portra 160', p: 0, calculate: (tm) => { if (tm <= 1) return tm * 2; if (tm <= 10) return 2 + (tm - 1) * (28 / 9); if (tm <= 100) return 30 + (tm - 10) * (170 / 90); return -1; } }, { id: 'kodak_portra_400', name: 'Kodak Portra 400', p: 0, calculate: (tm) => { if (tm <= 1) return tm * 2; if (tm <= 10) return 2 + (tm - 1) * (28 / 9); if (tm <= 100) return 30 + (tm - 10) * (170 / 90); return -1; } }, { id: 'kodak_portra_800', name: 'Kodak Portra 800', p: 0, calculate: (tm) => { if (tm <= 1) return tm * 2; if (tm <= 10) return 2 + (tm - 1) * (28 / 9); if (tm <= 100) return 30 + (tm - 10) * (170 / 90); return -1; } }, { id: 'kodak_tmax_100', name: 'Kodak T-MAX 100', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : (tm <= 100 ? tm * 2.2 : -1) }, { id: 'kodak_tmax_400', name: 'Kodak T-MAX 400', p: 0, calculate: (tm) => (tm <= 10) ? tm * 1.5 : (tm <= 100 ? tm * 2.0 : -1) }, { id: 'kodak_tri_x_400', name: 'Kodak Tri-X 400', p: 0, calculate: (tm) => (tm <= 10) ? tm * 2 : (tm <= 100 ? tm * 3 : -1) }, { id: 'kodak_vision3_50d', name: 'Kodak Vision3 50D (5203)', p: 0, calculate: (tm) => tm <= 1 ? tm : tm * Math.pow(2, (1/3) * Math.log10(tm)) }, { id: 'kodak_vision3_250d', name: 'Kodak Vision3 250D (5207)', p: 0, calculate: (tm) => tm <= 1 ? tm : tm * Math.pow(2, 0.5 * Math.log10(tm)) }, { id: 'kodak_vision3_500t', name: 'Kodak Vision3 500T (5219)', p: 0, calculate: (tm) => tm <= 1 ? tm : tm * Math.pow(2, Math.log10(tm)) }, { id: 'custom', name: 'Custom Film...', p: 0 }];
+        let _translations = {}, _filmData = [], _reciprocityData = {}, _dofData = {}, _flashData = {};
+
+        // --- GLOBAL STATE & UTILITIES ---
         let _currentLanguage = 'zh';
         const _dom = {};
         let _timerInterval, _alarmInterval, _audioCtx, _tempPValue = 0, _filmToDelete = null;
         const _originalTitle = document.title;
         const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
         const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
         const _formatTime = (s, units=true) => { const langData=_translations[_currentLanguage]; if (isNaN(s) || s === null || s < 0 || !isFinite(s) ) return units ? "N/A" : "00:00"; const t=Math.round(s); if(!units){const m=String(Math.floor(t/60)).padStart(2,'0');const sec=String(t%60).padStart(2,'0');return`${m}:${sec}`}if(t<60)return`${t.toFixed(t > 10 ? 0 : 1)} ${langData.timeUnitSec}`;const m=Math.floor(t/60);const sec=t%60;return`${m} ${langData.timeUnitMin} ${sec.toFixed(0)} ${langData.timeUnitSec}`};
         const _playBeep = () => { if (!_audioCtx) _audioCtx = new(window.AudioContext || window.webkitAudioContext)(); const osc = _audioCtx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(880, _audioCtx.currentTime); osc.connect(_audioCtx.destination); osc.start(); osc.stop(_audioCtx.currentTime + 0.2); };
         const _restrictInputToNumeric = (e) => { if ([46, 8, 9, 27, 13, 110, 190, 37, 39].includes(e.keyCode) || (e.keyCode === 65 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 67 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 86 && (e.ctrlKey || e.metaKey)) || (e.keyCode === 88 && (e.ctrlKey || e.metaKey))) { if ((e.keyCode === 190 || e.keyCode === 110) && e.target.value.includes('.')) e.preventDefault(); return; } if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) e.preventDefault(); };
@@ -239,34 +190,98 @@
         const _createRipple = (e) => { const btn=e.currentTarget; const r=document.createElement("span"); const rect=btn.getBoundingClientRect(); r.style.left=`${e.clientX-rect.left}px`; r.style.top=`${e.clientY-rect.top}px`; r.classList.add("ripple"); const existing=btn.querySelector(".ripple"); if (existing) existing.remove(); btn.appendChild(r); };
         const _debounce = (func, wait) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); }; };
         const _setTheme = (theme) => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('theme', theme); _dom.themeSwitcher.innerHTML = theme === 'dark' ? sunIcon : moonIcon; _dom.themeSwitcher.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'); document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#0D1117' : '#ffffff'); };
-        const _populateGenericSelect = (selectEl, data, textKey, valueKey) => { const langData = _translations[_currentLanguage]; selectEl.innerHTML = ''; data.forEach(item => { const opt = document.createElement('option'); opt.value = item[valueKey]; opt.textContent = langData[item[textKey]] || item[textKey]; selectEl.appendChild(opt); }); };
-        const _populateShutterSpeedSelect = () => { _dom.reciprocity.shutterSpeedSelect.innerHTML = ''; _shutterSpeeds.forEach(s => { const opt = document.createElement('option'); opt.value = s.value; opt.textContent = s.name === "placeholder" ? _translations[_currentLanguage].placeholderShutterSpeed : s.name; if (s.name === "placeholder") { opt.disabled = true; opt.selected = true;} _dom.reciprocity.shutterSpeedSelect.appendChild(opt); }); };
-        const _populateFilmSelect = () => { const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]') || []; const allFilms = [..._baseFilmData, ...customFilms]; const currentVal = _dom.reciprocity.filmSelect.value; _dom.reciprocity.filmSelect.innerHTML = ''; const customTemplate = allFilms.find(f => f.id === 'custom'); const sortedFilms = allFilms.filter(f => f.id !== 'custom').sort((a,b) => a.name.localeCompare(b.name, _currentLanguage === 'zh' ? 'zh-Hans-CN' : 'en-US')); [...sortedFilms, customTemplate].forEach(film => { if(!film) return; const option = document.createElement('option'); option.value = film.id; option.textContent = film.id === "custom" ? _translations[_currentLanguage].customFilmOption : film.name; _dom.reciprocity.filmSelect.appendChild(option); }); if (document.querySelector(`#film-select option[value="${currentVal}"]`)) { _dom.reciprocity.filmSelect.value = currentVal; } else if (sortedFilms.length > 0) { _dom.reciprocity.filmSelect.value = sortedFilms[0].id; } else if (customTemplate) { _dom.reciprocity.filmSelect.value = customTemplate.id; } _handleFilmSelectChange(); };
-        const _populateAllSelects = () => { _populateFilmSelect(); _populateGenericSelect(_dom.reciprocity.ndSelect, _ndFilters, 'key', 'factor'); _populateGenericSelect(_dom.dof.format, _sensorFormats, 'key', 'coc'); _populateGenericSelect(_dom.flash.modifierSelect, _flashModifiers, 'key', 'loss'); _populateGenericSelect(_dom.flash.powerSelect, _flashPowers, 'name', 'value'); _populateShutterSpeedSelect(); };
-        const _setLanguage = (lang) => { _currentLanguage = lang; localStorage.setItem('language', lang); document.documentElement.lang = lang; const langData = _translations[lang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (key === 'btnConfirmDelete' && el.id === 'cancel-delete-btn') { el.textContent = langData['btnCancel']; } else { el.textContent = langData[key] || ''; }}); document.querySelectorAll('[data-lang-placeholder]').forEach(el => { el.placeholder = langData[el.dataset.langPlaceholder] || ""; }); document.querySelectorAll('[data-tooltip-key]').forEach(el => { el.dataset.tooltip = langData[el.dataset.tooltipKey] || ""; }); if(_dom.langSwitcher) _dom.langSwitcher.textContent = langData.langSwitch; _populateAllSelects(); };
+        const _populateGenericSelect = (selectEl, data, textKey, valueKey) => { const langData = _translations[_currentLanguage]; selectEl.innerHTML = ''; data.forEach(item => { const opt = document.createElement('option'); opt.value = item[valueKey]; opt.textContent = langData[item[textKey]] || item[textKey] || item.name; selectEl.appendChild(opt); }); };
+        const _populateShutterSpeedSelect = () => { _dom.reciprocity.shutterSpeedSelect.innerHTML = ''; _reciprocityData.shutterSpeeds.forEach(s => { const opt = document.createElement('option'); opt.value = s.value; opt.textContent = s.name === "placeholder" ? _translations[_currentLanguage].placeholderShutterSpeed : s.name; if (s.name === "placeholder") { opt.disabled = true; opt.selected = true;} _dom.reciprocity.shutterSpeedSelect.appendChild(opt); }); };
+        const _populateFilmSelect = () => { const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]') || []; const allFilms = [..._filmData, ...customFilms]; const currentVal = _dom.reciprocity.filmSelect.value; _dom.reciprocity.filmSelect.innerHTML = ''; const customTemplate = allFilms.find(f => f.id === 'custom'); const sortedFilms = allFilms.filter(f => f.id !== 'custom').sort((a,b) => a.name.localeCompare(b.name, _currentLanguage === 'zh' ? 'zh-Hans-CN' : 'en-US')); [...sortedFilms, customTemplate].forEach(film => { if(!film) return; const option = document.createElement('option'); option.value = film.id; option.textContent = film.id === "custom" ? _translations[_currentLanguage].customFilmOption : film.name; _dom.reciprocity.filmSelect.appendChild(option); }); if (document.querySelector(`#film-select option[value="${currentVal}"]`)) { _dom.reciprocity.filmSelect.value = currentVal; } else if (sortedFilms.length > 0) { _dom.reciprocity.filmSelect.value = sortedFilms[0].id; } else if (customTemplate) { _dom.reciprocity.filmSelect.value = customTemplate.id; } _handleFilmSelectChange(); };
+        const _populateAllSelects = () => { _populateFilmSelect(); _populateGenericSelect(_dom.reciprocity.ndSelect, _reciprocityData.ndFilters, 'key', 'factor'); _populateGenericSelect(_dom.dof.format, _dofData.sensorFormats, 'key', 'coc'); _populateGenericSelect(_dom.flash.modifierSelect, _flashData.flashModifiers, 'key', 'loss'); _populateGenericSelect(_dom.flash.powerSelect, _flashData.flashPowers, 'name', 'value'); _populateShutterSpeedSelect(); };
+        const _setLanguage = (lang) => { _currentLanguage = lang; localStorage.setItem('language', lang); document.documentElement.lang = lang; const langData = _translations[lang]; document.querySelectorAll('[data-lang-key]').forEach(el => { const key = el.dataset.langKey; if (key === 'btnConfirmDelete' && el.id === 'cancel-delete-btn') { el.textContent = langData['btnCancel']; } else { el.textContent = langData[key] || ''; }}); document.querySelectorAll('[data-lang-placeholder]').forEach(el => { el.placeholder = langData[el.dataset.langPlaceholder] || ""; }); if(_dom.langSwitcher) _dom.langSwitcher.textContent = langData.langSwitch; _populateAllSelects(); };
         const _handleFilmSelectChange = () => { _dom.reciprocity.messageArea.innerHTML = ''; const isCustom = _dom.reciprocity.filmSelect.value === 'custom'; const isSavedCustom = _dom.reciprocity.filmSelect.value?.startsWith('custom_'); _dom.reciprocity.customGroup.classList.toggle('hidden', !isCustom); _dom.reciprocity.deleteArea.classList.toggle('hidden', !isSavedCustom); };
         const _updateFlashUI = (mode) => { _dom.flash.apertureGroup.classList.toggle('hidden', mode === 'aperture'); _dom.flash.distanceGroup.classList.toggle('hidden', mode === 'distance'); _dom.flash.powerGroup.classList.toggle('hidden', mode === 'power'); _dom.flash.messageArea.innerHTML = ''; };
         const _showMessage = (area, type, titleKey, content, finalTime) => { let cardHtml = ''; const langData = _translations[_currentLanguage]; let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : ''; if (type === 'result' && area === _dom.reciprocity.messageArea) { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-lg result-label">${title}</p><p class="text-4xl result-text mb-4">${content}</p><button id="start-timer-btn" type="button" data-time="${finalTime}" class="text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center mt-4 btn-ripple" style="background-color: var(--success-color);">${langData.btnStartTimer}</button></div>`; } else if (type === 'result') { cardHtml = `<div class="card p-5 text-center fade-in">${content}</div>`; } else if (type === 'info') { cardHtml = `<div class="card p-5 text-center fade-in"><p class="text-xl font-bold mb-2">${title}</p><p>${langData[titleKey].content}</p></div>`; } else { cardHtml = `<div class="error-message p-4 text-center fade-in"><p class="font-bold">${title}</p><p>${langData[titleKey].content || content}</p></div>`; } area.innerHTML = cardHtml; const startTimerBtn = document.getElementById('start-timer-btn'); if (startTimerBtn) { startTimerBtn.addEventListener('click', e => _startTimer(parseFloat(e.target.dataset.time))); startTimerBtn.addEventListener("click", _createRipple); } };
-        const _handleReciprocityCalculate = () => { const minutesVal = parseFloat(_dom.reciprocity.minInput.value) || 0; const secondsVal = parseFloat(_dom.reciprocity.secInput.value) || 0; const baseTime = (minutesVal * 60) + secondsVal; if (baseTime <= 0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; } const ndFactor = parseFloat(_dom.reciprocity.ndSelect.value) || 1; const focalLength = parseFloat(_dom.reciprocity.focalLengthInput.value); const bellowsExtension = parseFloat(_dom.reciprocity.bellowsExtensionInput.value); let bellowsFactor = 1; if (focalLength > 0 && bellowsExtension > focalLength) { bellowsFactor = (bellowsExtension / focalLength) ** 2; } const timeBeforeReciprocity = baseTime * ndFactor * bellowsFactor; if (!isFinite(timeBeforeReciprocity)) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; } const filmId = _dom.reciprocity.filmSelect.value; const filmData = [..._baseFilmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')]; const film = filmData.find((f) => f.id === filmId); if (!film) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorNoFilm'); return; } let pValue = film.p; if (filmId === 'custom') { const customP = parseFloat(_dom.reciprocity.customInput.value); if (!customP || customP <= 1.0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; } pValue = customP; } let tc = film.calculate ? film.calculate(timeBeforeReciprocity) : (timeBeforeReciprocity > 1 ? Math.pow(timeBeforeReciprocity, pValue) : timeBeforeReciprocity); if (!isFinite(tc) || tc < 0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorOutOfRange'); } else if (tc < 1 && Math.abs(tc - timeBeforeReciprocity) < 0.1) { _showMessage(_dom.reciprocity.messageArea, 'info', 'infoNoCompensation'); } else { _showMessage(_dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', _formatTime(tc), tc); } };
+
+        const _evaluateFormula = (formula, tm) => {
+            const { pow, log10, sqrt } = Math;
+            try {
+                return new Function('tm', 'pow', 'log10', 'sqrt', `return ${formula}`)(tm, pow, log10, sqrt);
+            } catch (e) {
+                console.error("Formula evaluation error:", e);
+                return -1; // Indicates an error
+            }
+        };
+
+        const _calculateByRules = (tm, rules) => {
+            for (const rule of rules) {
+                if (rule.condition === undefined || rule.condition === null || _evaluateFormula(rule.condition, tm)) {
+                    return _evaluateFormula(rule.formula, tm);
+                }
+            }
+            return -1; // No rule matched
+        };
+
+        const _handleReciprocityCalculate = () => {
+            const minutesVal = parseFloat(_dom.reciprocity.minInput.value) || 0;
+            const secondsVal = parseFloat(_dom.reciprocity.secInput.value) || 0;
+            const baseTime = (minutesVal * 60) + secondsVal;
+            if (baseTime <= 0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; }
+            const ndFactor = parseFloat(_dom.reciprocity.ndSelect.value) || 1;
+            const focalLength = parseFloat(_dom.reciprocity.focalLengthInput.value);
+            const bellowsExtension = parseFloat(_dom.reciprocity.bellowsExtensionInput.value);
+            let bellowsFactor = 1;
+            if (focalLength > 0 && bellowsExtension > focalLength) { bellowsFactor = (bellowsExtension / focalLength) ** 2; }
+            const timeBeforeReciprocity = baseTime * ndFactor * bellowsFactor;
+            if (!isFinite(timeBeforeReciprocity)) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidTime'); return; }
+            const filmId = _dom.reciprocity.filmSelect.value;
+            const allFilmData = [..._filmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')];
+            const film = allFilmData.find((f) => f.id === filmId);
+
+            if (!film) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorNoFilm'); return; }
+
+            let pValue = film.p;
+            if (filmId === 'custom') {
+                const customP = parseFloat(_dom.reciprocity.customInput.value);
+                if (!customP || customP <= 1.0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; }
+                pValue = customP;
+            }
+
+            let tc;
+            if (film.rules) {
+                tc = _calculateByRules(timeBeforeReciprocity, film.rules);
+            } else if (pValue) {
+                tc = timeBeforeReciprocity > 1 ? Math.pow(timeBeforeReciprocity, pValue) : timeBeforeReciprocity;
+            } else {
+                 tc = timeBeforeReciprocity;
+            }
+
+            if (!isFinite(tc) || tc < 0) {
+                _showMessage(_dom.reciprocity.messageArea, 'error', 'errorOutOfRange');
+            } else if (tc < 1 && Math.abs(tc - timeBeforeReciprocity) < 0.1) {
+                _showMessage(_dom.reciprocity.messageArea, 'info', 'infoNoCompensation');
+            } else {
+                _showMessage(_dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', _formatTime(tc), tc);
+            }
+        };
+
         const _handleDofCalculate = () => { const focalLength = parseFloat(_dom.dof.focalLength.value); const aperture = parseFloat(_dom.dof.aperture.value); const coc = parseFloat(_dom.dof.format.value); const distance = parseFloat(_dom.dof.distance.value) * 1000; if (!focalLength || !aperture || !coc || !distance || focalLength <= 0 || aperture <= 0 || distance <= 0) { _showMessage(_dom.dof.messageArea, 'error', 'errorInvalidDof'); return; } const H = (focalLength * focalLength) / (aperture * coc) + focalLength; const nearLimit = (H * distance) / (H + (distance - focalLength)); const farLimit = (H * distance) / (H - (distance - focalLength)); const langData = _translations[_currentLanguage]; const resultHtml = `<div class="space-y-3 text-lg"><div class="flex justify-between items-baseline"><p class="result-label">${langData.resultDofNear}</p><p class="result-text font-bold text-2xl">${(nearLimit / 1000).toFixed(2)}m</p></div><div class="flex justify-between items-baseline"><p class="result-label">${langData.resultDofFar}</p><p class="result-text font-bold text-2xl">${(isFinite(farLimit) && farLimit > 0 ? (farLimit / 1000).toFixed(2) + 'm' : '∞')}</p></div><div class="flex justify-between items-baseline"><p class="result-label">${langData.resultDofTotal}</p><p class="result-text font-bold text-2xl">${(isFinite(farLimit) && farLimit > 0 ? ((farLimit - nearLimit) / 1000).toFixed(2) + 'm' : '∞')}</p></div><div class="flex justify-between items-baseline"><p class="result-label">${langData.resultHyperfocal}</p><p class="result-text font-bold text-2xl">${(H / 1000).toFixed(2)}m</p></div></div>`; _showMessage(_dom.dof.messageArea, 'result', null, resultHtml); };
-        const _handleFlashCalculate = () => { const mode = document.querySelector('input[name="flash-mode"]:checked').value; const gn = parseFloat(_dom.flash.gnInput.value); const iso = parseFloat(_dom.flash.isoInput.value); const modifierLoss = parseFloat(_dom.flash.modifierSelect.value); const distance = parseFloat(_dom.flash.distanceInput.value); const power = parseFloat(_dom.flash.powerSelect.value); const aperture = parseFloat(_dom.flash.apertureInput.value); const langData = _translations[_currentLanguage]; if (!gn || !iso || gn <= 0 || iso <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const modifierFactor = Math.sqrt(Math.pow(2, -modifierLoss)); const effectiveGn = gn * Math.sqrt(iso / 100) * modifierFactor; let resultHtml = '', titleKey = ''; if (mode === 'aperture') { if (isNaN(distance) || isNaN(power) || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const result = (effectiveGn * Math.sqrt(power)) / distance; titleKey = 'resultAperture'; resultHtml = `<p class="text-4xl result-text mt-1">f/${result.toFixed(1)}</p>`; } else if (mode === 'distance') { if (isNaN(aperture) || isNaN(power) || aperture <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const result = (effectiveGn * Math.sqrt(power)) / aperture; titleKey = 'resultDistance'; resultHtml = `<p class="text-4xl result-text mt-1">${result.toFixed(1)}<span class="text-2xl ml-2 opacity-75">${langData.unitMeter}</span></p>`; } else if (mode === 'power') { if (isNaN(aperture) || isNaN(distance) || aperture <= 0 || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const requiredPower = Math.pow((aperture * distance) / effectiveGn, 2); if (requiredPower > 1 || !isFinite(requiredPower)) { _showMessage(_dom.flash.messageArea, 'error', 'errorOutOfRange'); return;} const closestPower = _flashPowers.reduce((prev, curr) => Math.abs(curr.value - requiredPower) < Math.abs(prev.value - requiredPower) ? curr : prev); titleKey = 'resultPower'; resultHtml = `<p class="text-4xl result-text mt-1">${closestPower.name}</p>`; } if (resultHtml) { _showMessage(_dom.flash.messageArea, 'result', null, `<p class="text-lg result-label">${langData[titleKey]}</p>${resultHtml}`); } };
+        const _handleFlashCalculate = () => { const mode = document.querySelector('input[name="flash-mode"]:checked').value; const gn = parseFloat(_dom.flash.gnInput.value); const iso = parseFloat(_dom.flash.isoInput.value); const modifierLoss = parseFloat(_dom.flash.modifierSelect.value); const distance = parseFloat(_dom.flash.distanceInput.value); const power = parseFloat(_dom.flash.powerSelect.value); const aperture = parseFloat(_dom.flash.apertureInput.value); const langData = _translations[_currentLanguage]; if (!gn || !iso || gn <= 0 || iso <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const modifierFactor = Math.sqrt(Math.pow(2, -modifierLoss)); const effectiveGn = gn * Math.sqrt(iso / 100) * modifierFactor; let resultHtml = '', titleKey = ''; if (mode === 'aperture') { if (isNaN(distance) || isNaN(power) || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const result = (effectiveGn * Math.sqrt(power)) / distance; titleKey = 'resultAperture'; resultHtml = `<p class="text-4xl result-text mt-1">f/${result.toFixed(1)}</p>`; } else if (mode === 'distance') { if (isNaN(aperture) || isNaN(power) || aperture <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const result = (effectiveGn * Math.sqrt(power)) / aperture; titleKey = 'resultDistance'; resultHtml = `<p class="text-4xl result-text mt-1">${result.toFixed(1)}<span class="text-2xl ml-2 opacity-75">${langData.unitMeter}</span></p>`; } else if (mode === 'power') { if (isNaN(aperture) || isNaN(distance) || aperture <= 0 || distance <= 0) { _showMessage(_dom.flash.messageArea, 'error', 'errorInvalidFlash'); return; } const requiredPower = Math.pow((aperture * distance) / effectiveGn, 2); if (requiredPower > 1 || !isFinite(requiredPower)) { _showMessage(_dom.flash.messageArea, 'error', 'errorOutOfRange'); return;} const closestPower = _flashData.flashPowers.reduce((prev, curr) => Math.abs(curr.value - requiredPower) < Math.abs(prev.value - requiredPower) ? curr : prev); titleKey = 'resultPower'; resultHtml = `<p class="text-4xl result-text mt-1">${closestPower.name}</p>`; } if (resultHtml) { _showMessage(_dom.flash.messageArea, 'result', null, `<p class="text-lg result-label">${langData[titleKey]}</p>${resultHtml}`); } };
         const _startTimer = (totalSeconds) => { if (!isFinite(totalSeconds) || totalSeconds < 0) return; _dom.mainContent.classList.add('hidden'); _dom.timer.card.classList.remove('hidden', 'finished'); document.body.classList.remove('flashing'); let remaining = Math.round(totalSeconds); _dom.timer.display.textContent = _formatTime(remaining, false); if (_timerInterval) clearInterval(_timerInterval); if (_alarmInterval) clearInterval(_alarmInterval); _timerInterval = setInterval(() => { remaining--; const formattedTime = _formatTime(remaining, false); _dom.timer.display.textContent = formattedTime; document.title = `(${formattedTime}) ${_originalTitle}`; if (remaining <= 0) { clearInterval(_timerInterval); const langData = _translations[_currentLanguage]; _dom.timer.display.textContent = langData.timerComplete; document.title = `✅ ${langData.timerComplete}`; _dom.timer.card.classList.add('finished'); _alarmInterval = setInterval(() => { _playBeep(); document.body.classList.toggle('flashing'); }, 1000); } }, 1000); };
         const _stopTimer = () => { clearInterval(_timerInterval); clearInterval(_alarmInterval); _timerInterval = _alarmInterval = null; document.body.classList.remove('flashing'); _dom.timer.card.classList.add('hidden'); _dom.mainContent.classList.remove('hidden'); _dom.tabs.reciprocity.click(); document.title = _originalTitle; };
         const _openSaveModal = () => { _tempPValue = parseFloat(_dom.reciprocity.customInput.value); if (!_tempPValue || _tempPValue <= 1.0) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidFactor'); return; } _dom.modals.saveNameInput.value = ''; _dom.modals.save.classList.remove('hidden'); _dom.modals.saveNameInput.focus(); };
         const _closeSaveModal = () => _dom.modals.save.classList.add('hidden');
-        const _confirmSaveCustomFilm = () => { const name = _dom.modals.saveNameInput.value.trim(); const allFilms = [..._baseFilmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')]; if(!name) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidName'); return; } if(allFilms.some(f => f.name.toLowerCase() === name.toLowerCase())) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorDuplicateName'); return; } const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); const newFilm = { id: `custom_${Date.now()}`, name: name, p: _tempPValue }; customFilms.push(newFilm); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _dom.reciprocity.filmSelect.value = newFilm.id; _handleFilmSelectChange(); _closeSaveModal(); };
+        const _confirmSaveCustomFilm = () => { const name = _dom.modals.saveNameInput.value.trim(); const allFilms = [..._filmData, ...JSON.parse(localStorage.getItem('customFilms') || '[]')]; if(!name) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorInvalidName'); return; } if(allFilms.some(f => f.name.toLowerCase() === name.toLowerCase())) { _showMessage(_dom.reciprocity.messageArea, 'error', 'errorDuplicateName'); return; } const customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]') || []; const newFilm = { id: `custom_${Date.now()}`, name: name, p: _tempPValue }; customFilms.push(newFilm); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _dom.reciprocity.filmSelect.value = newFilm.id; _handleFilmSelectChange(); _closeSaveModal(); };
         const _openDeleteModal = () => { const selectedOption = _dom.reciprocity.filmSelect.options[_dom.reciprocity.filmSelect.selectedIndex]; _filmToDelete = { id: selectedOption.value, name: selectedOption.text }; _dom.modals.deleteText.textContent = _translations[_currentLanguage].modalDeleteText.replace('{filmName}', _filmToDelete.name); _dom.modals.delete.classList.remove('hidden'); };
         const _closeDeleteModal = () => { _dom.modals.delete.classList.add('hidden'); _filmToDelete = null; };
-        const _confirmDeleteFilm = () => { if (!_filmToDelete) return; let customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]'); customFilms = customFilms.filter(f => f.id !== _filmToDelete.id); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _closeDeleteModal(); };
+        const _confirmDeleteFilm = () => { if (!_filmToDelete) return; let customFilms = JSON.parse(localStorage.getItem('customFilms') || '[]') || []; customFilms = customFilms.filter(f => f.id !== _filmToDelete.id); localStorage.setItem('customFilms', JSON.stringify(customFilms)); _populateFilmSelect(); _closeDeleteModal(); };
         const _saveState = () => { const stateToSave = { filmSelect: _dom.reciprocity.filmSelect.value, ndSelect: _dom.reciprocity.ndSelect.value, focalLength: _dom.reciprocity.focalLengthInput.value, bellowsExtension: _dom.reciprocity.bellowsExtensionInput.value, meteredMin: _dom.reciprocity.minInput.value, meteredSec: _dom.reciprocity.secInput.value, dofFormat: _dom.dof.format.value, dofFocalLength: _dom.dof.focalLength.value, dofAperture: _dom.dof.aperture.value, dofDistance: _dom.dof.distance.value, flashMode: document.querySelector('input[name="flash-mode"]:checked')?.value, flashGn: _dom.flash.gnInput.value, flashIso: _dom.flash.isoInput.value, flashModifier: _dom.flash.modifierSelect.value, flashAperture: _dom.flash.apertureInput.value, flashDistance: _dom.flash.distanceInput.value, flashPower: _dom.flash.powerSelect.value, }; localStorage.setItem('filmToolkitState', JSON.stringify(stateToSave)); };
-        const _loadState = () => { const saved = JSON.parse(localStorage.getItem('filmToolkitState') || '{}'); if (!Object.keys(saved).length) return; _dom.reciprocity.filmSelect.value = saved.filmSelect || ''; _dom.reciprocity.ndSelect.value = saved.ndSelect || '1'; _dom.reciprocity.focalLengthInput.value = saved.focalLength || ''; _dom.reciprocity.bellowsExtensionInput.value = saved.bellowsExtension || ''; _dom.reciprocity.minInput.value = saved.meteredMin || ''; _dom.reciprocity.secInput.value = saved.meteredSec || '30'; _dom.dof.format.value = saved.dofFormat || _sensorFormats[0].coc; _dom.dof.focalLength.value = saved.dofFocalLength || ''; _dom.dof.aperture.value = saved.dofAperture || ''; _dom.dof.distance.value = saved.dofDistance || ''; const flashModeRadio = document.querySelector(`input[name="flash-mode"][value="${saved.flashMode || 'aperture'}"]`); if (flashModeRadio) flashModeRadio.checked = true; _dom.flash.gnInput.value = saved.flashGn || ''; _dom.flash.isoInput.value = saved.flashIso || '100'; _dom.flash.modifierSelect.value = saved.flashModifier || '0'; _dom.flash.apertureInput.value = saved.flashAperture || ''; _dom.flash.distanceInput.value = saved.flashDistance || ''; _dom.flash.powerSelect.value = saved.flashPower || '1'; };
+        const _loadState = () => { const saved = JSON.parse(localStorage.getItem('filmToolkitState') || '{}'); if (!Object.keys(saved).length) return; _dom.reciprocity.filmSelect.value = saved.filmSelect || ''; _dom.reciprocity.ndSelect.value = saved.ndSelect || '1'; _dom.reciprocity.focalLengthInput.value = saved.focalLength || ''; _dom.reciprocity.bellowsExtensionInput.value = saved.bellowsExtension || ''; _dom.reciprocity.minInput.value = saved.meteredMin || ''; _dom.reciprocity.secInput.value = saved.meteredSec || '30'; _dom.dof.format.value = saved.dofFormat || _dofData.sensorFormats[0].coc; _dom.dof.focalLength.value = saved.dofFocalLength || ''; _dom.dof.aperture.value = saved.dofAperture || ''; _dom.dof.distance.value = saved.dofDistance || ''; const flashModeRadio = document.querySelector(`input[name="flash-mode"][value="${saved.flashMode || 'aperture'}"]`); if (flashModeRadio) flashModeRadio.checked = true; _dom.flash.gnInput.value = saved.flashGn || ''; _dom.flash.isoInput.value = saved.flashIso || '100'; _dom.flash.modifierSelect.value = saved.flashModifier || '0'; _dom.flash.apertureInput.value = saved.flashAperture || ''; _dom.flash.distanceInput.value = saved.flashDistance || ''; _dom.flash.powerSelect.value = saved.flashPower || '1'; };
 
         // --- APP INITIALIZATION ---
-        (function _init() {
+        function _initializeApp() {
             Object.assign(_dom, {
                 mainContent: document.getElementById('main-content'), themeSwitcher: document.getElementById('theme-switcher'), langSwitcher: document.getElementById('lang-switcher'),
+                globalTooltip: document.getElementById('global-tooltip'),
                 tabs: { reciprocity: document.getElementById('tab-reciprocity'), dof: document.getElementById('tab-dof'), flash: document.getElementById('tab-flash') },
                 panelsContainer: document.getElementById('panels-container'),
+                panelsWrapper: document.getElementById('panels-wrapper'),
                 reciprocity: { filmSelect: document.getElementById('film-select'), deleteArea: document.getElementById('delete-film-area'), deleteBtn: document.getElementById('delete-film-btn'), customGroup: document.getElementById('custom-factor-group'), customInput: document.getElementById('custom-factor'), saveBtn: document.getElementById('save-custom-btn'), ndSelect: document.getElementById('nd-filter-select'), minInput: document.getElementById('metered-time-min'), secInput: document.getElementById('metered-time-sec'), calculateBtn: document.getElementById('calculate-btn'), messageArea: document.getElementById('message-area'), focalLengthInput: document.getElementById('focal-length'), bellowsExtensionInput: document.getElementById('bellows-extension'), shutterSpeedSelect: document.getElementById('shutter-speed-select') },
                 dof: { format: document.getElementById('dof-format'), focalLength: document.getElementById('dof-focal-length'), aperture: document.getElementById('dof-aperture'), distance: document.getElementById('dof-distance'), calculateBtn: document.getElementById('calculate-dof-btn'), messageArea: document.getElementById('dof-message-area') },
                 flash: { gnInput: document.getElementById('flash-gn'), isoInput: document.getElementById('flash-iso'), powerSelect: document.getElementById('flash-power'), distanceInput: document.getElementById('flash-distance'), apertureInput: document.getElementById('flash-aperture'), calculateBtn: document.getElementById('calculate-flash-btn'), messageArea: document.getElementById('flash-message-area'), calcModeRadios: document.querySelectorAll('input[name="flash-mode"]'), modifierSelect: document.getElementById('flash-modifier'), apertureGroup: document.getElementById('flash-aperture-group'), distanceGroup: document.getElementById('flash-distance-group'), powerGroup: document.getElementById('flash-power-group') },
@@ -274,10 +289,39 @@
                 modals: { save: document.getElementById('save-modal'), saveNameInput: document.getElementById('custom-film-name'), cancelSave: document.getElementById('cancel-save-btn'), confirmSave: document.getElementById('confirm-save-btn'), delete: document.getElementById('delete-modal'), deleteText: document.getElementById('delete-confirm-text'), cancelDelete: document.getElementById('cancel-delete-btn'), confirmDelete: document.getElementById('confirm-delete-btn') }
             });
 
+            _dom.mainContent.style.visibility = 'visible';
+
+            const debouncedSaveState = _debounce(_saveState, 500);
+
             _setTheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
             _setLanguage(localStorage.getItem('language') || 'zh');
             _loadState();
-            const debouncedSaveState = _debounce(_saveState, 500);
+
+            const showTooltip = (trigger) => {
+                const tooltipText = _translations[_currentLanguage][trigger.dataset.tooltipKey];
+                if (!tooltipText) return;
+
+                _dom.globalTooltip.textContent = tooltipText;
+                const triggerRect = trigger.getBoundingClientRect();
+                _dom.globalTooltip.classList.add('visible');
+
+                const top = triggerRect.top - _dom.globalTooltip.offsetHeight - 8;
+                const left = triggerRect.left + (triggerRect.width / 2) - (_dom.globalTooltip.offsetWidth / 2);
+
+                _dom.globalTooltip.style.top = `${top}px`;
+                _dom.globalTooltip.style.left = `${left}px`;
+            };
+
+            const hideTooltip = () => {
+                _dom.globalTooltip.classList.remove('visible');
+            };
+
+            document.querySelectorAll('.tooltip-trigger').forEach(trigger => {
+                trigger.addEventListener('mouseenter', () => showTooltip(trigger));
+                trigger.addEventListener('mouseleave', hideTooltip);
+                trigger.addEventListener('focus', () => showTooltip(trigger));
+                trigger.addEventListener('blur', hideTooltip);
+            });
 
             _dom.themeSwitcher.addEventListener('click', () => _setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
             _dom.langSwitcher.addEventListener('click', () => { _setLanguage(_currentLanguage === 'zh' ? 'en' : 'zh'); });
@@ -297,9 +341,14 @@
                 const touchEndX = e.changedTouches[0].screenX; const touchEndY = e.changedTouches[0].screenY;
                 const deltaX = touchEndX - touchStartX; const deltaY = touchEndY - touchStartY;
                 if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    // MODIFICATION: Hide tooltip on swipe
+                    hideTooltip();
                     const currentActiveIndex = tabs.findIndex(tab => tab.classList.contains('active'));
-                    if (deltaX < 0 && currentActiveIndex < tabs.length - 1) { tabs[currentActiveIndex + 1].click(); }
-                    else if (deltaX > 0 && currentActiveIndex > 0) { tabs[currentActiveIndex - 1].click(); }
+                    if (deltaX < 0 && currentActiveIndex < tabs.length - 1) {
+                        tabs[currentActiveIndex + 1].click();
+                    } else if (deltaX > 0 && currentActiveIndex > 0) {
+                        tabs[currentActiveIndex - 1].click();
+                    }
                 }
             }, { passive: true });
 
@@ -335,8 +384,10 @@
                 }
             });
 
-            document.querySelectorAll('.select').forEach(el => el.addEventListener('change', debouncedSaveState));
-
+            document.querySelectorAll('input, .select').forEach(el => {
+                el.addEventListener('input', debouncedSaveState);
+                el.addEventListener('change', debouncedSaveState);
+            });
             document.querySelectorAll('.btn-ripple').forEach(button => button.addEventListener("click", _createRipple));
 
             _handleFilmSelectChange();
@@ -348,7 +399,30 @@
                 .then(reg => console.log('Service Worker registered.', reg))
                 .catch(err => console.error('Service Worker registration failed:', err));
             }
-        })();
+        }
+
+        function _start() {
+            if (window.appDataString) {
+                try {
+                    const data = window.appDataString; // Already an object
+                    const appData = data.appData;
+                    _translations = appData.translations;
+                    _filmData = appData.films;
+                    _reciprocityData = appData.reciprocity;
+                    _dofData = appData.dof;
+                    _flashData = appData.flash;
+                    _initializeApp();
+                } catch(e) {
+                     console.error("Fatal: Failed to parse injected data.", e);
+                     document.body.innerHTML = '<div style="text-align: center; padding-top: 50px; font-family: sans-serif; color: #E6EDF3;">Failed to parse application data.</div>';
+                }
+            } else {
+                // If data is not yet available, wait a bit and try again.
+                setTimeout(_start, 100);
+            }
+        }
+
+        _start();
     };
 </script>
 </body>

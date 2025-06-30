@@ -1,0 +1,128 @@
+{
+  "appData": {
+    "translations": {
+      "en": {
+        "title": "Film Photography Toolkit", "subtitle": "Precise calculation for your creation", "langSwitch": "中", "tabReciprocity": "Reciprocity", "tabDof": "DOF/Hyperfocal", "tabFlash": "Flash",
+        "labelFilm": "Select Film", "customFilmOption": "Custom Film...", "deleteThisFilm": "Delete this film", "labelCustomFactor": "Custom Reciprocity Factor (p)", "placeholderPValue": "e.g., 1.31", "btnSave": "Save",
+        "labelND": "Select ND Filter (Optional)", "labelBellows": "Bellows Comp. (Optional)", "placeholderFocalLength": "Focal L.", "placeholderBellows": "Bellows Ext.",
+        "labelMeteredTime": "Metered Time", "unitMin": "min", "unitSec": "sec", "btnCalculate": "Calculate Exposure", "labelShutterSpeed": "Or Quick Select Shutter Speed", "placeholderShutterSpeed": "Select a common speed...",
+        "labelFormat": "Select Format", "labelHfFocalLength": "Focal Length (mm)", "placeholderHfFocalLength": "e.g., 50", "labelHfAperture": "Aperture (f/)", "placeholderHfAperture": "e.g., 8",
+        "labelFocusDistance": "Focus Distance (m)", "placeholderDistance": "e.g., 3.5 (meters)", "btnCalculateDof": "Calculate DOF & Hyperfocal",
+        "btnStartTimer": "Start Timer", "btnStopTimer": "Stop Timer", "timerComplete": "Done!",
+        "labelCalcMode": "Calculation Mode", "calcModeAperture": "Aperture", "calcModeDistance": "Distance", "calcModePower": "Power", "labelGuideNumber": "Guide Number (GN) @ ISO 100", "placeholderGuideNumber": "e.g., 40 (meters)",
+        "labelISO": "Film ISO", "labelFlashPower": "Flash Power", "labelDistance": "Distance to Subject (m)", "labelFlashAperture": "Aperture (f/)", "placeholderFlashAperture": "e.g., 5.6", "btnFlashCalculate": "Calculate",
+        "labelModifier": "Flash Modifier (Optional)",
+        "modalSaveTitle": "Save Custom Film", "modalSaveLabel": "Film Name", "modalSavePlaceholder": "e.g., My HP5+", "btnCancel": "Cancel", "btnConfirmSave": "Confirm & Save",
+        "modalDeleteTitle": "Confirm Deletion", "modalDeleteText": "Are you sure you want to delete '{filmName}'? This action cannot be undone.", "btnConfirmDelete": "Confirm Delete",
+        "errorInvalidTime": { "title": "Invalid Input", "content": "Please enter a valid time greater than 0." }, "errorInvalidName": { "title": "Invalid Name", "content": "Please enter a name for the film." }, "errorDuplicateName": { "title": "Duplicate Name", "content": "A film with this name already exists." }, "errorInvalidFactor": { "title": "Invalid Factor", "content": "Please enter a reciprocity factor (p-value) greater than 1." },
+        "errorNoFilm": { "title": "Error", "content": "Selected film not found." }, "errorOutOfRange": { "title": "Out of Range", "content": "Official data for this exposure time is unknown. Please consult the datasheet or test it." },
+        "errorInvalidDof": { "title": "Invalid Input", "content": "Please enter all valid values for calculation." }, "errorInvalidFlash": { "title": "Invalid Input", "content": "Please enter all required valid values." },
+        "resultCorrectedTime": "Corrected Exposure", "resultDofNear": "Near Limit", "resultDofFar": "Far Limit", "resultDofTotal": "Total DOF", "resultHyperfocal": "Hyperfocal",
+        "resultAperture": "Required Aperture", "resultDistance": "Max Distance", "resultPower": "Recommended Power",
+        "infoNoCompensation": { "title": "No Compensation Needed", "content": "No reciprocity failure compensation is required at this shutter speed." },
+        "unitMeter": "meters", "timeUnitSec": "sec", "timeUnitMin": "min",
+        "ndFilter_none": "None", "ndFilter_2": "ND4 (2 stops)", "ndFilter_3": "ND8 (3 stops)", "ndFilter_6": "ND64 (6 stops)", "ndFilter_10": "ND1000 (10 stops)", "ndFilter_16": "ND100K (16.6 stops)",
+        "format_ff": "Full Frame (35mm)", "format_apsc": "APS-C", "format_m43": "M4/3", "format_6x6": "6x6 Medium Format", "format_4x5": "4x5 Large Format",
+        "flashMod_none": "None / Standard Reflector", "flashMod_transUmbrella": "Translucent Umbrella (-1 stop)", "flashMod_silverUmbrella": "Reflective Umbrella (Silver) (-1.5 stops)", "flashMod_softbox": "Softbox (-1.5 stops)", "flashMod_snoot": "Snoot (-2 stops)",
+        "tooltipPValue": "The 'p' value in the Schwarzschild formula (Tc = Tm^p). A higher value means more severe reciprocity failure. Typically between 1.1 and 1.6.",
+        "tooltipBellows": "Compensates for light loss when the lens is extended far from the film plane, common in large format and macro photography.",
+        "tooltipGN": "Guide Number (GN) measures a flash's power. It's the max distance (m/ft) the flash can illuminate a subject at f/1 and ISO 100.",
+        "tooltipFormat": "The film/sensor format determines the Circle of Confusion (CoC), a key factor for calculating Depth of Field. Larger formats have a larger CoC."
+      },
+      "zh": {
+        "title": "胶片摄影工具箱", "subtitle": "精准计算，轻松创作", "langSwitch": "EN", "tabReciprocity": "倒易律", "tabDof": "景深/超焦距", "tabFlash": "闪光灯",
+        "labelFilm": "选择胶片", "customFilmOption": "自定义胶片...", "deleteThisFilm": "删除此胶片", "labelCustomFactor": "自定义倒易律系数 (p)", "placeholderPValue": "例如: 1.31", "btnSave": "保存",
+        "labelND": "选择 ND 减光镜 (可选)", "labelBellows": "大画幅皮腔补偿 (可选)", "placeholderFocalLength": "镜头焦距", "placeholderBellows": "皮腔长度",
+        "labelMeteredTime": "输入相机测光时间", "unitMin": "分", "unitSec": "秒", "btnCalculate": "计算曝光时间", "labelShutterSpeed": "或快速选择快门速度 (可选)", "placeholderShutterSpeed": "选择常用快门速度...",
+        "labelFormat": "选择画幅", "labelHfFocalLength": "输入焦距 (mm)", "placeholderHfFocalLength": "例如: 50", "labelHfAperture": "输入光圈 (f/)", "placeholderHfAperture": "例如: 8",
+        "labelFocusDistance": "对焦距离 (米)", "placeholderDistance": "例如: 3.5 (米)", "btnCalculateDof": "计算景深与超焦距",
+        "btnStartTimer": "开始计时", "btnStopTimer": "停止计时", "timerComplete": "完成!",
+        "labelCalcMode": "计算模式", "calcModeAperture": "计算光圈", "calcModeDistance": "计算距离", "calcModePower": "计算功率", "labelGuideNumber": "闪光指数 (GN) @ ISO 100", "placeholderGuideNumber": "例如: 40 (米)",
+        "labelISO": "胶片感光度", "labelFlashPower": "闪光灯功率", "labelDistance": "到主体的距离 (米)", "labelFlashAperture": "光圈值 (f/)", "placeholderFlashAperture": "例如: 5.6", "btnFlashCalculate": "计算",
+        "labelModifier": "闪光灯附件 (可选)",
+        "modalSaveTitle": "保存自定义胶片", "modalSaveLabel": "胶片名称", "modalSavePlaceholder": "例如: 我的HP5+", "btnCancel": "取消", "btnConfirmSave": "确认保存",
+        "modalDeleteTitle": "确认删除", "modalDeleteText": "您确定要删除胶片 “{filmName}” 吗？此操作无法撤销。", "btnConfirmDelete": "确认删除",
+        "errorInvalidTime": { "title": "输入无效", "content": "请输入一个大于0的有效时间。" }, "errorInvalidName": { "title": "名称无效", "content": "请输入胶片名称。" }, "errorDuplicateName": { "title": "名称重复", "content": "一个同名的胶片已经存在。" }, "errorInvalidFactor": { "title": "系数无效", "content": "请输入一个大于1的倒易律系数 (p 值)。" },
+        "errorInvalidDof": { "title": "输入无效", "content": "请填写所有需要的有效数值。" }, "errorInvalidFlash": { "title": "输入无效", "content": "请输入所有需要的有效数值。" }, "errorNoFilm": { "title": "错误", "content": "未找到选定的胶片。" },"errorOutOfRange": { "title": "超出范围", "content": "此曝光时间的官方数据未知。请查阅数据表或进行测试。" },
+        "resultCorrectedTime": "校正后曝光时间", "resultDofNear": "景深近点", "resultDofFar": "景深远点", "resultDofTotal": "景深全范围", "resultHyperfocal": "超焦距", "resultAperture": "所需光圈", "resultDistance": "最大距离", "resultPower": "建议功率",
+        "infoNoCompensation": { "title": "无需补偿", "content": "在此快门速度下，无需进行倒易律失效补偿。" },
+        "unitMeter": "米", "timeUnitSec": "秒", "timeUnitMin": "分",
+        "ndFilter_none": "无", "ndFilter_2": "ND4 (2档)", "ndFilter_3": "ND8 (3档)", "ndFilter_6": "ND64 (6档)", "ndFilter_10": "ND1000 (10档)", "ndFilter_16": "ND100K (16.6档)",
+        "format_ff": "全画幅 (35mm)", "format_apsc": "APS-C", "format_m43": "M4/3", "format_6x6": "6x6 中画幅", "format_4x5": "4x5 大画幅",
+        "flashMod_none": "无 / 标准反光罩", "flashMod_transUmbrella": "透射伞 (-1档)", "flashMod_silverUmbrella": "反光伞 (银色) (-1.5档)", "flashMod_softbox": "柔光箱 (-1.5档)", "flashMod_snoot": "束光筒 (-2档)",
+        "tooltipPValue": "史瓦西公式 (Tc = Tm^p) 中的 'p' 值。p值越大，倒易律失效越严重。通常在 1.1 到 1.6 之间。",
+        "tooltipBellows": "用于补偿镜头远离胶片平面（如大画幅或微距摄影）时的光线损失（光曝效应）。",
+        "tooltipGN": "闪光指数 (GN) 是衡量闪光灯功率的单位，指在 ISO 100 和 f/1 光圈下，闪光灯能照亮主体的最大距离（米/英尺）。",
+        "tooltipFormat": "画幅大小决定了弥散圆 (CoC) 的大小，这是计算景深的关键参数。画幅越大，弥散圆也越大。"
+      }
+    },
+    "films": [
+      { "id": "cinestill_800t", "name": "CineStill 800T", "rules": [{ "condition": "tm > 1", "formula": "tm * 2.6" }] },
+      { "id": "fomapan_100", "name": "Fomapan 100 Classic", "rules": [{ "condition": "tm <= 1", "formula": "tm * 2" }, { "condition": "tm > 1", "formula": "tm * (pow(log10(tm), 2) + 5 * log10(tm) + 2)" }] },
+      { "id": "fomapan_200", "name": "Fomapan 200 Creative", "p": 1.65 },
+      { "id": "fomapan_400", "name": "Fomapan 400 Action", "rules": [{ "formula": "1.30 * pow(tm, 1.90)" }] },
+      { "id": "fujifilm_acros_100_ii", "name": "Fujifilm Neopan Acros 100 II", "rules": [{ "condition": "tm <= 120", "formula": "tm" }, { "condition": "tm > 120 && tm <= 1000", "formula": "tm * sqrt(2)" }, { "condition": "tm > 1000", "formula": "-1" }] },
+      { "id": "fujifilm_pro_160ns", "name": "Fujifilm PRO 160NS", "rules": [{ "condition": "tm <= 16", "formula": "tm" }, { "condition": "tm > 16 && tm <= 32", "formula": "50" }, { "condition": "tm > 32", "formula": "-1" }] },
+      { "id": "fujifilm_provia_100f", "name": "Fujifilm Provia 100F", "rules": [{ "condition": "tm <= 128", "formula": "tm" }, { "condition": "tm > 128", "formula": "-1" }] },
+      { "id": "fujifilm_velvia_50", "name": "Fujifilm Velvia 50", "rules": [
+        { "condition": "tm <= 2", "formula": "tm" }, { "condition": "tm > 2 && tm <= 4", "formula": "8" }, { "condition": "tm > 4 && tm <= 8", "formula": "20" },
+        { "condition": "tm > 8 && tm <= 15", "formula": "50" }, { "condition": "tm > 15 && tm <= 30", "formula": "150" }, { "condition": "tm > 30 && tm <= 60", "formula": "300" },
+        { "condition": "tm > 60", "formula": "-1" }
+      ]},
+      { "id": "fujifilm_velvia_100", "name": "Fujifilm Velvia 100", "rules": [
+        { "condition": "tm <= 8", "formula": "tm * 1.5" }, { "condition": "tm > 8 && tm <= 15", "formula": "20" }, { "condition": "tm > 15 && tm <= 30", "formula": "40" },
+        { "condition": "tm > 30 && tm <= 60", "formula": "90" }, { "condition": "tm > 60", "formula": "-1" }
+      ]},
+      { "id": "ilford_delta_100", "name": "Ilford Delta 100 Professional", "p": 1.31 },
+      { "id": "ilford_delta_400", "name": "Ilford Delta 400 Professional", "p": 1.29 },
+      { "id": "ilford_delta_3200", "name": "Ilford Delta 3200 Professional", "p": 1.34 },
+      { "id": "ilford_fp4_plus", "name": "Ilford FP4 Plus", "p": 1.26 },
+      { "id": "ilford_hp5_plus", "name": "Ilford HP5 Plus", "p": 1.31 },
+      { "id": "ilford_pan_f_plus", "name": "Ilford Pan F Plus", "p": 1.48 },
+      { "id": "kentmere_pan_100", "name": "Kentmere Pan 100", "p": 1.35 },
+      { "id": "kentmere_pan_400", "name": "Kentmere Pan 400", "p": 1.38 },
+      { "id": "kodak_ektachrome_100d_5294", "name": "Kodak Ektachrome 100D (5294)", "rules": [{ "condition": "tm <= 1", "formula": "tm" }, { "condition": "tm > 1", "formula": "tm * pow(2, (1/3) * log10(tm))" }] },
+      { "id": "kodak_ektachrome_e100", "name": "Kodak Ektachrome E100", "rules": [{ "condition": "tm <= 1", "formula": "tm" }, { "condition": "tm > 1", "formula": "tm * pow(2, (1/3) * log10(tm))" }] },
+      { "id": "kodak_ektar_100", "name": "Kodak Ektar 100", "rules": [{ "formula": "tm * 1.5" }] },
+      { "id": "kodak_portra_160", "name": "Kodak Portra 160", "rules": [{ "condition": "tm <= 1", "formula": "tm * 2" }, { "condition": "tm > 1 && tm <= 10", "formula": "2 + (tm - 1) * (28 / 9)" }, { "condition": "tm > 10 && tm <= 100", "formula": "30 + (tm - 10) * (170 / 90)" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_portra_400", "name": "Kodak Portra 400", "rules": [{ "condition": "tm <= 1", "formula": "tm * 2" }, { "condition": "tm > 1 && tm <= 10", "formula": "2 + (tm - 1) * (28 / 9)" }, { "condition": "tm > 10 && tm <= 100", "formula": "30 + (tm - 10) * (170 / 90)" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_portra_800", "name": "Kodak Portra 800", "rules": [{ "condition": "tm <= 1", "formula": "tm * 2" }, { "condition": "tm > 1 && tm <= 10", "formula": "2 + (tm - 1) * (28 / 9)" }, { "condition": "tm > 10 && tm <= 100", "formula": "30 + (tm - 10) * (170 / 90)" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_tmax_100", "name": "Kodak T-MAX 100", "rules": [{ "condition": "tm <= 10", "formula": "tm * 1.5" }, { "condition": "tm > 10 && tm <= 100", "formula": "tm * 2.2" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_tmax_400", "name": "Kodak T-MAX 400", "rules": [{ "condition": "tm <= 10", "formula": "tm * 1.5" }, { "condition": "tm > 10 && tm <= 100", "formula": "tm * 2.0" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_tri_x_400", "name": "Kodak Tri-X 400", "rules": [{ "condition": "tm <= 10", "formula": "tm * 2" }, { "condition": "tm > 10 && tm <= 100", "formula": "tm * 3" }, { "condition": "tm > 100", "formula": "-1" }] },
+      { "id": "kodak_vision3_50d", "name": "Kodak Vision3 50D (5203)", "rules": [{ "condition": "tm <= 1", "formula": "tm" }, { "condition": "tm > 1", "formula": "tm * pow(2, (1/3) * log10(tm))" }] },
+      { "id": "kodak_vision3_250d", "name": "Kodak Vision3 250D (5207)", "rules": [{ "condition": "tm <= 1", "formula": "tm" }, { "condition": "tm > 1", "formula": "tm * pow(2, 0.5 * log10(tm))" }] },
+      { "id": "kodak_vision3_500t", "name": "Kodak Vision3 500T (5219)", "rules": [{ "condition": "tm <= 1", "formula": "tm" }, { "condition": "tm > 1", "formula": "tm * pow(2, log10(tm))" }] },
+      { "id": "custom", "name": "Custom Film...", "p": 0 }
+    ],
+    "reciprocity": {
+      "ndFilters": [
+        { "key": "ndFilter_none", "factor": 1 }, { "key": "ndFilter_2", "factor": 4 }, { "key": "ndFilter_3", "factor": 8 },
+        { "key": "ndFilter_6", "factor": 64 }, { "key": "ndFilter_10", "factor": 1024 }, { "key": "ndFilter_16", "factor": 100000 }
+      ],
+      "shutterSpeeds": [
+        { "name": "placeholder", "value": "" }, { "name": "1/1000 s", "value": 0.001 }, { "name": "1/500 s", "value": 0.002 },
+        { "name": "1/250 s", "value": 0.004 }, { "name": "1/125 s", "value": 0.008 }, { "name": "1/60 s", "value": 0.016666666666666666 },
+        { "name": "1/30 s", "value": 0.03333333333333333 }, { "name": "1/15 s", "value": 0.06666666666666667 }, { "name": "1/8 s", "value": 0.125 },
+        { "name": "1/4 s", "value": 0.25 }, { "name": "1/2 s", "value": 0.5 }, { "name": "1 s", "value": 1 }
+      ]
+    },
+    "dof": {
+      "sensorFormats": [
+        { "key": "format_ff", "coc": 0.030 }, { "key": "format_apsc", "coc": 0.020 }, { "key": "format_m43", "coc": 0.015 },
+        { "key": "format_6x6", "coc": 0.060 }, { "key": "format_4x5", "coc": 0.100 }
+      ]
+    },
+    "flash": {
+      "flashPowers": [
+        { "name": "1/1 (Full)", "value": 1 }, { "name": "1/2", "value": 0.5 }, { "name": "1/4", "value": 0.25 },
+        { "name": "1/8", "value": 0.125 }, { "name": "1/16", "value": 0.0625 }, { "name": "1/32", "value": 0.03125 },
+        { "name": "1/64", "value": 0.015625 }, { "name": "1/128", "value": 0.0078125 }
+      ],
+      "flashModifiers": [
+        { "key": "flashMod_none", "loss": 0 }, { "key": "flashMod_transUmbrella", "loss": 1 },
+        { "key": "flashMod_silverUmbrella", "loss": 1.5 }, { "key": "flashMod_softbox", "loss": 1.5 }, { "key": "flashMod_snoot", "loss": 2 }
+      ]
+    }
+  }
+}
