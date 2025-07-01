@@ -1,7 +1,11 @@
 package com.example.filmtools;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.os.Bundle;
+import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -13,6 +17,30 @@ public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
 
+    // 1. 创建一个内部类作为JS和Java通信的桥梁
+    public class WebAppInterface {
+        Context mContext;
+
+        WebAppInterface(Context c) {
+            mContext = c;
+        }
+
+        // 2. 定义一个给JavaScript调用的方法，来控制屏幕常亮
+        @JavascriptInterface
+        public void keepScreenOn(boolean enable) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (enable) {
+                        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    } else {
+                        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    }
+                }
+            });
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,29 +48,23 @@ public class MainActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.webview);
 
-        // 设置 WebView
         WebSettings webSettings = webView.getSettings();
-
-        // 开启 JavaScript 支持，这是我们的计算器能运行的关键
         webSettings.setJavaScriptEnabled(true);
-        // 开启 DOM Storage API 支持，用于保存语言偏好和自定义胶片
         webSettings.setDomStorageEnabled(true);
-        // 允许通过 file:// URL 访问其他 file:// URL，对于从本地加载 JS 模块或 JSON 很重要
         webSettings.setAllowFileAccessFromFileURLs(true);
-        // 允许访问文件
         webSettings.setAllowFileAccess(true);
 
+        // 3. 将我们创建的桥梁实例，添加到WebView中
+        // "Android" 是我们给这个桥梁起的名字，JS将通过这个名字来调用我们的方法
+        webView.addJavascriptInterface(new WebAppInterface(this), "Android");
 
-        // 让 WebView 内容在 App 内部加载，而不是调用外部浏览器
+
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                // 页面加载完成后，读取本地 JSON 数据并注入到 WebView 中
                 String jsonData = loadJSONFromAsset();
                 if (jsonData != null) {
-                    // 为了防止 JSON 字符串中的特殊字符（如引号、换行符）破坏 JS 注入，我们对其进行转义
-                    // 在这里，我们使用 backticks (`) 作为字符串分隔符，它支持多行，能更好地处理JSON字符串
                     // 使用反引号(`)将jsonData包裹成一个合法的JavaScript多行字符串
                     String script = "javascript:window.appDataString = `" + jsonData + "`;";
                     view.evaluateJavascript(script, null);
@@ -50,11 +72,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 加载我们放在 assets 文件夹里的网页文件
         webView.loadUrl("file:///android_asset/index.html");
     }
 
-    // 新增一个方法，用于从 assets 文件夹读取 JSON 文件内容
     public String loadJSONFromAsset() {
         String json = null;
         try {
@@ -71,8 +91,6 @@ public class MainActivity extends AppCompatActivity {
         return json;
     }
 
-
-    // 添加返回键逻辑，使得在 WebView 内可以后退，而不是直接退出 App
     @Override
     public void onBackPressed() {
         if (webView.canGoBack()) {
