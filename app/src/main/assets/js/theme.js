@@ -6,6 +6,14 @@ export function setTheme(theme, dom) {
     localStorage.setItem('theme', theme);
     dom.themeSwitcher.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
     dom.themeSwitcher.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+
+    // (新增) 检查 'Android' 桥梁是否存在，并调用新方法
+    if (window.Android && typeof window.Android.setSystemUITheme === 'function') {
+        window.Android.setSystemUITheme(theme);
+    }
+
+    // 注意：这里的 meta theme-color 现在主要影响 PWA 的标题栏颜色，
+    // 对于原生安卓应用，状态栏颜色由原生代码控制。
     document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#0D1117' : '#ffffff');
 }
 
