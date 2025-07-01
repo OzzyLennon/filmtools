@@ -194,6 +194,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const tabs = Object.values(dom.tabs);
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
+                // 清空所有消息区域，防止内容重叠
+                dom.reciprocity.messageArea.innerHTML = '';
+                dom.dof.messageArea.innerHTML = '';
+                dom.flash.messageArea.innerHTML = '';
+
                 tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
                 tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
                 dom.panelsContainer.style.transform = `translateX(-${index * 100}%)`;
@@ -226,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
         // Calculation Buttons
-        dom.reciprocity.calculateBtn.addEventListener('click', () => handleReciprocityCalculate(dom, appData, showMessage));
+        dom.reciprocity.calculateBtn.addEventListener('click', () => handleReciprocityCalculate(dom, appData, showMessage, startTimer));
         dom.dof.calculateBtn.addEventListener('click', () => handleDofCalculate(dom, appData, showMessage));
         dom.flash.calculateBtn.addEventListener('click', () => handleFlashCalculate(dom, appData, showMessage));
 

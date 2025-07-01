@@ -49,10 +49,15 @@
 }
 
 export function startTimer(totalSeconds, dom, appData) {
-    if (!isFinite(totalSeconds) || totalSeconds < 0) return;
+    if (!isFinite(totalSeconds) || totalSeconds < 0) return; // 添加了输入验证
     if (window.Android && typeof window.Android.keepScreenOn === 'function') {
         window.Android.keepScreenOn(true);
     }
+
+    // ...
+
+    if (appData.timerInterval) clearInterval(appData.timerInterval); // 清除旧计时器
+    if (appData.alarmInterval) clearInterval(appData.alarmInterval); // 清除旧闹钟
 
     dom.mainContent.classList.add('hidden');
     dom.timer.card.classList.remove('hidden', 'finished');

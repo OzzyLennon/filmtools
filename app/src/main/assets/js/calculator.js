@@ -19,7 +19,7 @@ function calculateByRules(tm, rules) {
     return -1;
 }
 
-export function handleReciprocityCalculate(dom, appData, showMessage) {
+export function handleReciprocityCalculate(dom, appData, showMessage, startTimer) {
     const mVal = parseFloat(dom.reciprocity.minInput.value) || 0;
     const sVal = parseFloat(dom.reciprocity.secInput.value) || 0;
     const bTime = (mVal * 60) + sVal;
