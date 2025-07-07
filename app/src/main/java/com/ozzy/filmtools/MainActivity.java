@@ -1,4 +1,4 @@
-package com.example.filmtools;
+package com.ozzylennon.filmtools;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;

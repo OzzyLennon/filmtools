@@ -23,6 +23,33 @@ document.addEventListener('DOMContentLoaded', function() {
         isUpdatingFromSelect: false,
     };
 
+    function createRipple(event) {
+        const button = event.currentTarget;
+        const circle = document.createElement("span");
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+        const radius = diameter / 2;
+
+        // 获取按钮相对于视口的边界
+        const rect = button.getBoundingClientRect();
+
+        // 计算点击位置相对于按钮左上角的位置
+        const rippleX = event.clientX - rect.left;
+        const rippleY = event.clientY - rect.top;
+
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${rippleX - radius}px`;
+        circle.style.top = `${rippleY - radius}px`;
+        circle.classList.add("ripple");
+
+        // 检查按钮内部是否已经有一个 ripple 元素，有就先移除
+        const ripple = button.getElementsByClassName("ripple")[0];
+        if (ripple) {
+            ripple.remove();
+        }
+
+        button.appendChild(circle);
+    }
+
     // --- DOM ELEMENTS ---
     const dom = {
         mainContent: document.getElementById('main-content'),
@@ -320,6 +347,10 @@ document.addEventListener('DOMContentLoaded', function() {
             trigger.addEventListener('mouseleave', hideTooltip);
             trigger.addEventListener('focus', () => showTooltip(trigger));
             trigger.addEventListener('blur', hideTooltip);
+        });
+
+        document.querySelectorAll('.btn-ripple').forEach(button => {
+            button.addEventListener('click', createRipple);
         });
     }
 

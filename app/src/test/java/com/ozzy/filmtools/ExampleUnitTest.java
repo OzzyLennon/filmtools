@@ -1,4 +1,4 @@
-package com.example.filmtools;
+package com.ozzylennon.filmtools;
 
 import org.junit.Test;
 
