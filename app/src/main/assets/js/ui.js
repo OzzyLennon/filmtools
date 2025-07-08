@@ -3,6 +3,7 @@
     import { formatTime, playBeep } from './utils.js';
 
     export function showMessage(area, type, titleKey, content, finalTime, appData, startTimer) {
+    area.hidden = false;
     area.innerHTML = '';
     const langData = appData.translations[appData.currentLanguage];
     let title = titleKey ? (langData[titleKey]?.title || langData[titleKey]) : '';

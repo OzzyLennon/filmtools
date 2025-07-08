@@ -222,9 +222,9 @@ document.addEventListener('DOMContentLoaded', function() {
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
                 // 清空所有消息区域，防止内容重叠
-                dom.reciprocity.messageArea.innerHTML = '';
-                dom.dof.messageArea.innerHTML = '';
-                dom.flash.messageArea.innerHTML = '';
+                dom.reciprocity.messageArea.hidden = true;
+                dom.dof.messageArea.hidden = true;
+                dom.flash.messageArea.hidden = true;
 
                 tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
                 tab.classList.add('active'); tab.setAttribute('aria-selected', 'true');
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const handleManualTimeInput = () => {
             if (appData.isUpdatingFromSelect) return;
             dom.reciprocity.shutterSpeedSelect.value = '';
-            dom.reciprocity.messageArea.innerHTML = '';
+            dom.reciprocity.messageArea.hidden = true;
             debouncedSaveState(dom);
         };
         dom.reciprocity.minInput.addEventListener('input', handleManualTimeInput);

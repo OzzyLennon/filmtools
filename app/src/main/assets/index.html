@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>胶片摄影工具箱</title>
     <meta name="theme-color" content="#0D1117">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="胶片工具箱">
 
@@ -29,8 +27,6 @@
             background-color: var(--bg-primary);
             color: var(--text-primary);
             transition: background-color var(--transition-speed), color var(--transition-speed);
-            display: flex;
-            justify-content: center;
         }
 
         .app-title { color: var(--text-primary); font-weight: 900; }
@@ -80,8 +76,8 @@
     </style>
 </head>
 <body class="min-h-screen">
-<div class="w-full max-w-md mx-auto p-4 pt-8">
-    <header class="mb-8">
+<div class="w-full max-w-md mx-auto flex flex-col h-screen">
+    <header class="mb-8 p-4 pt-8">
         <div class="flex justify-end items-center space-x-2">
             <button id="theme-switcher" type="button" class="btn-ripple p-2 rounded-full" style="color: var(--text-secondary);"></button>
             <button id="lang-switcher" type="button" class="btn-ripple border text-sm font-bold py-1 px-3 rounded-md" style="color: var(--text-secondary); border-color: var(--border-color);" data-lang-key="langSwitch"></button>
@@ -92,7 +88,7 @@
         </div>
     </header>
 
-    <div id="main-content" style="visibility: hidden;">
+    <div id="main-content" style="visibility: hidden;" class="flex-1 overflow-y-auto pb-4 px-4">
         <div class="flex mb-4" role="tablist" aria-label="Calculators" style="border-bottom: 1px solid var(--border-color);">
             <button id="tab-reciprocity" type="button" role="tab" aria-selected="true" class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
             <button id="tab-dof" type="button" role="tab" aria-selected="false" class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
@@ -162,7 +158,7 @@
                         </div>
                         <button id="calculate-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculate"></button>
                     </main>
-                    <div id="message-area" class="mt-6"></div>
+                    <div id="message-area" class="mt-6" hidden></div>
                 </div>
                 <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
@@ -197,7 +193,7 @@
                         </div>
                         <button id="calculate-dof-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculateDof"></button>
                     </main>
-                    <div id="dof-message-area" class="mt-6"></div>
+                    <div id="dof-message-area" class="mt-6" hidden></div>
                 </div>
                 <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
                     <main class="card p-6 space-y-5">
@@ -243,7 +239,7 @@
                         </div>
                         <button id="calculate-flash-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnFlashCalculate"></button>
                     </main>
-                    <div id="flash-message-area" class="mt-6"></div>
+                    <div id="flash-message-area" class="mt-6" hidden></div>
                 </div>
             </div>
         </div>
@@ -264,6 +260,5 @@
 <div id="global-tooltip"></div>
 
 <script type="module" src="js/main.js"></script>
-
 </body>
 </html>
