@@ -1,7 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 
 <head>
+    <script>
+        // Set theme BEFORE first paint to prevent flash
+        (function () {
+            var t = localStorage.getItem('theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>胶片摄影工具箱</title>
@@ -10,363 +18,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="胶片工具箱">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-
-    <style>
-        :root {
-            --transition-speed: 0.2s;
-        }
-
-        [data-theme="dark"] {
-            --bg-primary: #0D1117;
-            --bg-secondary: #161B22;
-            --text-primary: #E6EDF3;
-            --text-secondary: #8B949E;
-            --accent-primary: #33D7FF;
-            --accent-primary-text: #0D1117;
-            --accent-secondary: #FF00E6;
-            --border-color: #30363D;
-            --error-color: #F85149;
-            --success-color: #2DA44E;
-        }
-
-        [data-theme="light"] {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f6f8fa;
-            --text-primary: #24292f;
-            --text-secondary: #57606a;
-            --accent-primary: #0969da;
-            --accent-primary-text: #ffffff;
-            --accent-secondary: #8250df;
-            --border-color: #d0d7de;
-            --error-color: #d73a49;
-            --success-color: #2DA44E;
-        }
-
-        body {
-            font-family: 'Inter', 'Roboto', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
-        }
-
-        .app-title {
-            color: var(--text-primary);
-            font-weight: 900;
-        }
-
-        .subtitle {
-            color: var(--accent-secondary);
-        }
-
-        .label {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .result-label {
-            color: var(--text-secondary);
-        }
-
-        .result-text {
-            color: var(--accent-primary);
-            font-weight: 700;
-        }
-
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        .input,
-        .select {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            width: 100%;
-            font-size: 1rem;
-            transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
-        }
-
-        .input:focus,
-        .select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
-        }
-
-        .select {
-            appearance: none;
-            -webkit-appearance: none;
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1.25em;
-            padding-right: 2.5rem !important;
-        }
-
-        [data-theme="dark"] .select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238B949E'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
-        }
-
-        [data-theme="light"] .select {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2357606a'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
-        }
-
-        .timer-card {
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            border-radius: 0.5rem;
-        }
-
-        .timer-card.finished {
-            background-color: var(--success-color) !important;
-            color: white;
-        }
-
-        .error-message {
-            background-color: var(--error-color);
-            color: white;
-            padding: 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .flashing {
-            animation: flash 1s infinite;
-        }
-
-        @keyframes flash {
-            50% {
-                background-color: #F85149;
-            }
-        }
-
-        .tab-button {
-            background-color: transparent;
-            color: var(--text-secondary);
-            border: none;
-            border-bottom: 2px solid transparent;
-            transition: color var(--transition-speed), border-color var(--transition-speed);
-            border-radius: 0;
-            text-align: center;
-        }
-
-        .tab-button.active {
-            color: var(--accent-primary);
-            border-bottom-color: var(--accent-primary);
-        }
-
-        .radio-group label {
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            background-color: var(--bg-primary);
-            transition: all var(--transition-speed);
-            cursor: pointer;
-        }
-
-        .radio-group input:checked+label {
-            background-color: var(--accent-primary);
-            color: var(--accent-primary-text);
-            border-color: var(--accent-primary);
-            font-weight: 700;
-        }
-
-        .card {
-            background-color: var(--bg-secondary);
-            border-radius: 0.5rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-ripple {
-            position: relative;
-            overflow: hidden;
-            transition: background 0.3s, transform 0.1s;
-        }
-
-        .btn-ripple:active {
-            transform: scale(0.98);
-        }
-
-        .btn-ripple .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background-color: color-mix(in srgb, var(--text-primary) 60%, transparent);
-            width: 100px;
-            height: 100px;
-            margin-top: -50px;
-            margin-left: -50px;
-            animation: ripple-animation 0.8s;
-            opacity: 0;
-        }
-
-        @keyframes ripple-animation {
-            from {
-                transform: scale(1);
-                opacity: 0.4;
-            }
-
-            to {
-                transform: scale(10);
-                opacity: 0;
-            }
-        }
-
-        .tooltip-trigger {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 1rem;
-            height: 1rem;
-            border-radius: 50%;
-            background-color: var(--text-secondary);
-            color: var(--bg-primary);
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: help;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        [tabindex] {
-            outline: none;
-        }
-
-        #global-tooltip {
-            position: absolute;
-            background-color: var(--bg-secondary);
-            color: var(--text-primary);
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            font-weight: 400;
-            width: max-content;
-            max-width: 250px;
-            text-align: left;
-            z-index: 1000;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border-color);
-            visibility: hidden;
-        }
-
-        #global-tooltip.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .input-stepper {
-            display: flex;
-            align-items: stretch;
-            width: 100%;
-        }
-
-        .input-stepper .input {
-            text-align: center;
-            border-left: none;
-            border-right: none;
-            border-radius: 0;
-            z-index: 1;
-        }
-
-        .stepper-btn {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 0.75rem;
-            font-size: 1.2rem;
-            line-height: 1;
-            width: 50px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            user-select: none;
-        }
-
-        .stepper-btn:hover {
-            background-color: color-mix(in srgb, var(--border-color) 40%, transparent);
-        }
-
-        .stepper-minus {
-            border-radius: 0.375rem 0 0 0.375rem;
-        }
-
-        .stepper-plus {
-            border-radius: 0 0.375rem 0.375rem 0;
-        }
-
-        .quick-select-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-
-        .quick-select-chip {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .quick-select-chip:hover {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-        }
-
-        .quick-select-chip.active {
-            background-color: var(--accent-primary);
-            color: var(--accent-primary-text);
-            border-color: var(--accent-primary);
-            font-weight: 600;
-        }
-
-        .progress-ring-bg,
-        .progress-ring-fg {
-            fill: none;
-            stroke-width: 8;
-        }
-
-        .progress-ring-bg {
-            stroke: var(--border-color);
-        }
-
-        .progress-ring-fg {
-            stroke: var(--success-color);
-            stroke-linecap: round;
-            transform-origin: 50% 50%;
-            transform: rotate(-90deg);
-            transition: stroke-dashoffset 1s linear;
-        }
-    </style>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/lib/anime.min.js"></script>
 </head>
 
 <body class="min-h-screen">
     <div class="w-full max-w-md mx-auto flex flex-col h-screen">
         <header class="mb-8 p-4" style="padding-top: max(2rem, env(safe-area-inset-top));">
-            <div class="flex justify-end items-center space-x-2">
-                <button id="theme-switcher" type="button" class="btn-ripple p-2 rounded-full"
-                    style="color: var(--text-secondary);"></button>
+            <div class="flex justify-end items-center space-x-5">
+                <button id="theme-switcher" type="button"
+                    class="btn-ripple btn-icon p-2 rounded-full flex items-center justify-center transition-colors duration-300"></button>
                 <button id="lang-switcher" type="button"
-                    class="btn-ripple border text-sm font-bold py-1 px-3 rounded-md"
-                    style="color: var(--text-secondary); border-color: var(--border-color);"
+                    class="btn-ripple btn-secondary text-sm font-bold py-1 px-3 rounded-full"
                     data-lang-key="langSwitch"></button>
             </div>
             <div class="text-center mt-2">
@@ -377,19 +40,19 @@
 
         <div id="main-content" style="visibility: hidden; padding-bottom: max(1rem, env(safe-area-inset-bottom));"
             class="flex-1 overflow-y-auto px-4">
-            <div class="flex mb-4" role="tablist" aria-label="Calculators"
-                style="border-bottom: 1px solid var(--border-color);">
+            <div class="flex mb-4 p-1 rounded-full bg-[color-mix(in_srgb,var(--bg-secondary)_80%,transparent)] shadow-inner"
+                role="tablist" aria-label="Calculators">
                 <button id="tab-reciprocity" type="button" role="tab" aria-selected="true"
-                    class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
-                <button id="tab-dof" type="button" role="tab" aria-selected="false"
-                    class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
-                <button id="tab-flash" type="button" role="tab" aria-selected="false"
-                    class="tab-button grow p-3 font-bold" data-lang-key="tabFlash"></button>
+                    class="tab-button grow font-bold active" data-lang-key="tabReciprocity"></button>
+                <button id="tab-dof" type="button" role="tab" aria-selected="false" class="tab-button grow font-bold"
+                    data-lang-key="tabDof"></button>
+                <button id="tab-flash" type="button" role="tab" aria-selected="false" class="tab-button grow font-bold"
+                    data-lang-key="tabFlash"></button>
             </div>
             <div id="panels-wrapper" class="overflow-hidden">
                 <div id="panels-container" class="flex transition-transform duration-300 ease-in-out">
                     <div id="panel-reciprocity" role="tabpanel" class="w-full flex-shrink-0">
-                        <main class="card p-6 space-y-5">
+                        <section class="card p-6 space-y-5">
                             <div>
                                 <label for="film-select" class="block mb-1 text-md label"
                                     data-lang-key="labelFilm"></label>
@@ -413,8 +76,7 @@
                                         data-step="0.01">+</button>
                                 </div>
                                 <div class="text-right"> <button id="save-custom-btn" type="button"
-                                        class="btn-ripple font-bold rounded-md px-4 py-2"
-                                        style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                                        class="btn-ripple btn-primary font-bold rounded-md px-4 py-2"
                                         data-lang-key="btnSave"></button> </div>
                             </div>
                             <div>
@@ -426,7 +88,7 @@
                                 <label class="label flex items-center space-x-2"> <span
                                         data-lang-key="labelBellows"></span> <span class="tooltip-trigger"
                                         data-tooltip-key="tooltipBellows" tabindex="0">?</span> </label>
-                                <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                                <div class="grid grid-cols-fr-auto gap-x-3 gap-y-2">
                                     <div class="input-stepper">
                                         <button type="button" class="stepper-btn stepper-minus"
                                             data-target="focal-length" data-step="1">-</button>
@@ -449,7 +111,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="label" data-lang-key="labelMeteredTime"></label>
-                                <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                                <div class="grid grid-cols-fr-auto gap-x-3 gap-y-2">
                                     <div class="input-stepper">
                                         <button type="button" class="stepper-btn stepper-minus"
                                             data-target="metered-time-min" data-step="1">-</button>
@@ -473,17 +135,19 @@
                             <div>
                                 <label for="shutter-speed-select" class="block mb-1 text-md label"
                                     data-lang-key="labelShutterSpeed"></label>
-                                <select id="shutter-speed-select" class="select text-sm"></select>
+                                <div class="dial-wrapper">
+                                    <div class="dial-indicator"></div>
+                                    <div id="shutter-speed-dial" class="dial-container"></div>
+                                </div>
+                                <input type="hidden" id="shutter-speed-select">
                             </div>
-                            <button id="calculate-btn" type="button"
-                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
-                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                            <button id="calculate-btn" type="button" class="btn-ripple btn-primary btn-full"
                                 data-lang-key="btnCalculate"></button>
-                        </main>
+                        </section>
                         <div id="message-area" class="mt-6" hidden></div>
                     </div>
                     <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
-                        <main class="card p-6 space-y-5">
+                        <section class="card p-6 space-y-5">
                             <div>
                                 <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label"> <span
                                         data-lang-key="labelFormat"></span> <span class="tooltip-trigger"
@@ -505,15 +169,12 @@
                             <div>
                                 <label for="dof-aperture" class="block mb-1 text-md label"
                                     data-lang-key="labelHfAperture"></label>
-                                <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="dof-aperture"
-                                        data-step="0.1">-</button>
-                                    <input type="number" step="any" inputmode="decimal" id="dof-aperture"
-                                        class="input text-center" data-lang-placeholder="placeholderHfAperture">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="dof-aperture"
-                                        data-step="0.1">+</button>
+                                <div class="dial-wrapper">
+                                    <div class="dial-indicator"></div>
+                                    <div id="dof-aperture-dial" class="dial-container">
+                                    </div>
                                 </div>
-                                <div id="aperture-quick-select" class="quick-select-bar"></div>
+                                <input type="hidden" id="dof-aperture">
                             </div>
                             <div>
                                 <label for="dof-distance" class="block mb-1 text-md label"
@@ -527,15 +188,13 @@
                                         data-step="0.5">+</button>
                                 </div>
                             </div>
-                            <button id="calculate-dof-btn" type="button"
-                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
-                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                            <button id="calculate-dof-btn" type="button" class="btn-ripple btn-primary btn-full"
                                 data-lang-key="btnCalculateDof"></button>
-                        </main>
+                        </section>
                         <div id="dof-message-area" class="mt-6" hidden></div>
                     </div>
                     <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
-                        <main class="card p-6 space-y-5">
+                        <section class="card p-6 space-y-5">
                             <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label>
                                 <div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio"
                                         id="calc-aperture" name="flash-mode" value="aperture" class="hidden"
@@ -565,14 +224,12 @@
                             <div>
                                 <label for="flash-iso" class="block mb-1 text-md label"
                                     data-lang-key="labelISO"></label>
-                                <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-iso"
-                                        data-step="10">-</button>
-                                    <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-iso"
-                                        data-step="10">+</button>
+                                <div class="dial-wrapper">
+                                    <div class="dial-indicator"></div>
+                                    <div id="flash-iso-dial" class="dial-container">
+                                    </div>
                                 </div>
-                                <div id="iso-quick-select" class="quick-select-bar"></div>
+                                <input type="hidden" id="flash-iso" value="100">
                             </div>
                             <div><label for="flash-modifier" class="block mb-1 text-md label"
                                     data-lang-key="labelModifier"></label><select id="flash-modifier"
@@ -580,15 +237,12 @@
                             <div id="flash-aperture-group">
                                 <label for="flash-aperture" class="block mb-1 text-md label"
                                     data-lang-key="labelFlashAperture"></label>
-                                <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-aperture"
-                                        data-step="0.1">-</button>
-                                    <input type="number" step="any" inputmode="decimal" id="flash-aperture"
-                                        class="input" data-lang-placeholder="placeholderFlashAperture">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-aperture"
-                                        data-step="0.1">+</button>
+                                <div class="dial-wrapper">
+                                    <div class="dial-indicator"></div>
+                                    <div id="flash-aperture-dial" class="dial-container">
+                                    </div>
                                 </div>
-                                <div id="flash-aperture-quick-select" class="quick-select-bar"></div>
+                                <input type="hidden" id="flash-aperture">
                             </div>
                             <div id="flash-distance-group">
                                 <label for="flash-distance" class="block mb-1 text-md label"
@@ -607,55 +261,58 @@
                                     data-lang-key="labelFlashPower"></label>
                                 <select id="flash-power" class="select text-sm"></select>
                             </div>
-                            <button id="calculate-flash-btn" type="button"
-                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
-                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                            <button id="calculate-flash-btn" type="button" class="btn-ripple btn-primary btn-full"
                                 data-lang-key="btnFlashCalculate"></button>
-                        </main>
+                        </section>
                         <div id="flash-message-area" class="mt-6" hidden></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="timer-card" class="hidden text-center p-6 timer-card">
-            <div class="relative w-48 h-48 mx-auto mb-6">
-                <svg class="w-full h-full" viewBox="0 0 100 100">
-                    <circle class="progress-ring-bg" cx="50" cy="50" r="45"></circle>
-                    <circle id="progress-ring" class="progress-ring-fg" cx="50" cy="50" r="45"></circle>
-                </svg>
-                <h2 id="timer-display" class="absolute inset-0 flex items-center justify-center text-5xl font-bold">
-                    00:00</h2>
+        <div id="timer-card" class="hidden flex-col items-center justify-center p-10 timer-card card min-h-[60vh]">
+            <div class="flex flex-col items-center justify-center">
+                <div class="relative w-64 h-64 mx-auto mb-10">
+                    <svg class="w-full h-full drop-shadow-xl" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="var(--success-color)" />
+                                <stop offset="100%" stop-color="#059669" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="progress-ring-bg" cx="50" cy="50" r="47"></circle>
+                        <circle id="progress-ring" class="progress-ring-fg" cx="50" cy="50" r="47"
+                            stroke="url(#timer-gradient)"></circle>
+                    </svg>
+                    <h2 id="timer-display"
+                        class="absolute inset-0 flex items-center justify-center font-normal mono-num"
+                        style="font-size: 3.5rem; letter-spacing: -0.05em; text-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        00:00</h2>
+                </div>
+                <button id="stop-timer-btn" type="button"
+                    class="btn-ripple rounded-full px-8 py-3 font-bold text-sm tracking-widest"
+                    style="background-color: transparent; border: 1px solid color-mix(in srgb, var(--error-color) 40%, var(--border-color)); color: var(--error-color); box-shadow: var(--shadow-drop);"
+                    data-lang-key="btnStopTimer"></button>
             </div>
-            <button id="stop-timer-btn" type="button"
-                class="bg-red-600 text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
-                data-lang-key="btnStopTimer"></button>
         </div>
-        <div id="save-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-            style="z-index: 50;">
+        <div id="save-modal" class="hidden modal-overlay">
             <div class="card p-6 w-full max-w-sm">
                 <h3 class="text-xl font-bold mb-4" data-lang-key="modalSaveTitle"></h3> <label for="custom-film-name"
                     class="block mb-1 text-md label" data-lang-key="modalSaveLabel"></label> <input type="text"
                     id="custom-film-name" class="input" data-lang-placeholder="modalSavePlaceholder">
                 <div class="flex justify-end space-x-4 mt-6"> <button id="cancel-save-btn" type="button"
-                        class="btn-ripple font-bold rounded-lg px-5 py-2"
-                        style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);"
-                        data-lang-key="btnCancel"></button> <button id="confirm-save-btn" type="button"
-                        class="btn-ripple font-bold rounded-lg px-5 py-2"
-                        style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                        class="btn-ripple btn-secondary btn-sm" data-lang-key="btnCancel"></button> <button
+                        id="confirm-save-btn" type="button" class="btn-ripple btn-primary btn-sm"
                         data-lang-key="btnConfirmSave"></button> </div>
             </div>
         </div>
-        <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4"
-            style="z-index: 50;">
+        <div id="delete-modal" class="hidden modal-overlay">
             <div class="card p-6 w-full max-w-sm">
                 <h3 class="text-xl font-bold mb-4" data-lang-key="modalDeleteTitle"></h3>
                 <p id="delete-confirm-text" class="mb-6"></p>
                 <div class="flex justify-end space-x-4"> <button id="cancel-delete-btn" type="button"
-                        class="btn-ripple font-bold rounded-lg px-5 py-2"
-                        style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);"
-                        data-lang-key="btnCancel"></button> <button id="confirm-delete-btn" type="button"
-                        class="btn-ripple text-white font-bold rounded-lg px-5 py-2"
-                        style="background-color: var(--error-color);" data-lang-key="btnConfirmDelete"></button> </div>
+                        class="btn-ripple btn-secondary btn-sm" data-lang-key="btnCancel"></button> <button
+                        id="confirm-delete-btn" type="button" class="btn-ripple btn-danger btn-sm"
+                        data-lang-key="btnConfirmDelete"></button> </div>
             </div>
         </div>
     </div>

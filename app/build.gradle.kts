@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace = "com.ozzylennon.filmtools"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.ozzylennon.filmtools"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 6
-        versionName = "1.3.0"
+        targetSdk = 36
+        versionCode = 7
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -19,6 +19,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

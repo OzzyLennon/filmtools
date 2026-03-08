@@ -6,7 +6,7 @@ export const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" heig
 let audioCtx;
 export function playBeep() {
     if (!audioCtx) {
-        audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
     const osc = audioCtx.createOscillator();
     osc.type = 'sine';
@@ -14,8 +14,16 @@ export function playBeep() {
     osc.connect(audioCtx.destination);
     osc.start();
     osc.stop(audioCtx.currentTime + 0.2);
+    osc.onended = () => osc.disconnect();
 }
 
+export function triggerHaptic(duration = 15) {
+    if (window.Android && typeof window.Android.vibrate === 'function') {
+        window.Android.vibrate(duration);
+    } else if (navigator.vibrate) {
+        navigator.vibrate(duration);
+    }
+}
 
 export function cleanNumericInput(e) {
     const input = e.target;
@@ -55,7 +63,7 @@ export function formatTime(s, translations, units = true) {
 
 export function debounce(func, wait) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
         clearTimeout(timeout);
         timeout = setTimeout(() => func.apply(this, args), wait);
     };

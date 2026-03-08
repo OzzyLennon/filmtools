@@ -32,8 +32,8 @@ export function setLanguage(lang, appData, dom, populateAllSelects, handleFilmSe
 
     document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
         const key = el.dataset.langPlaceholder;
-        if(langData[key]) {
-           el.placeholder = langData[key];
+        if (langData[key]) {
+            el.placeholder = langData[key];
         }
     });
 

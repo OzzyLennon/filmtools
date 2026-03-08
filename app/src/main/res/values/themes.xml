@@ -3,6 +3,8 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/splash_background_light</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="S">@color/splash_background_light</item>
 
     </style>
 

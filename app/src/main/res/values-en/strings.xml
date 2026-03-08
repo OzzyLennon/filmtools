@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FilmTools</string>
+    <string name="timer_countdown">Exposure Countdown</string>
+    <string name="timer_complete">Exposure Complete</string>
+    <string name="timer_stop">Stop</string>
+    <string name="timer_channel_description">Shows remaining time for exposure countdown</string>
+</resources>

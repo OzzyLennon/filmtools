@@ -1,24 +1,5 @@
 // assets/js/calculator.js
 
-function evaluateFormula(formula, tm) {
-    const { pow, log10, sqrt } = Math;
-    try {
-        return new Function('tm', 'pow', 'log10', 'sqrt', `return ${formula}`)(tm, pow, log10, sqrt);
-    } catch (e) {
-        console.error("Formula evaluation error:", e);
-        return -1;
-    }
-}
-
-function calculateByRules(tm, rules) {
-    for (const rule of rules) {
-        if (rule.condition === undefined || rule.condition === null || evaluateFormula(rule.condition, tm)) {
-            return evaluateFormula(rule.formula, tm);
-        }
-    }
-    return -1;
-}
-
 function calculateByPoints(tm, points) {
     if (!points || points.length === 0) return -1;
 
@@ -115,8 +96,6 @@ export function handleReciprocityCalculate(dom, appData, showMessage, startTimer
         tc = calculateByPoints(tbr, film.points);
         // Fallback or adjustment if calculation goes wild
         if (tc > 360000) tc = -1; // Cap at 100 hours
-    } else if (film.rules) {
-        tc = calculateByRules(tbr, film.rules);
     } else if (pVal) {
         tc = tbr > 1 ? Math.pow(tbr, pVal) : tbr;
     } else {

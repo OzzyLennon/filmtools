@@ -1,11 +1,11 @@
 // assets/js/main.js
 import { setTheme, setLanguage } from './theme.js';
-import { showMessage, startTimer, stopTimer, createQuickChips, syncChipsToInput, updateFlashUI } from './ui.js';
+import { showMessage, startTimer, stopTimer, createDial, setDialValue, updateFlashUI } from './ui.js';
 import { handleReciprocityCalculate, handleDofCalculate, handleFlashCalculate } from './calculator.js';
 import { debouncedSaveState, loadState, confirmSaveCustomFilm, confirmDeleteFilm, openSaveModal, closeSaveModal, openDeleteModal, closeDeleteModal } from './state.js';
-import { cleanNumericInput } from './utils.js';
+import { cleanNumericInput, triggerHaptic } from './utils.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
     // --- GLOBAL STATE & APP DATA ---
     const appData = {
@@ -100,8 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
             apertureGroup: document.getElementById('flash-aperture-group'),
             distanceGroup: document.getElementById('flash-distance-group'),
             powerGroup: document.getElementById('flash-power-group'),
-            flashApertureQuickSelect: document.getElementById('flash-aperture-quick-select'),
-            isoQuickSelect: document.getElementById('iso-quick-select'),
         },
         timer: {
             card: document.getElementById('timer-card'),
@@ -154,18 +152,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateShutterSpeedSelect() {
         if (!dom.reciprocity.shutterSpeedSelect) return;
-        const langData = appData.translations[appData.currentLanguage];
-        dom.reciprocity.shutterSpeedSelect.innerHTML = '';
-        appData.reciprocity.shutterSpeeds.forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.value;
-            opt.textContent = s.name === "placeholder" ? langData.placeholderShutterSpeed : s.name;
-            if (s.name === "placeholder") {
-                opt.disabled = true;
-                opt.selected = true;
-            }
-            dom.reciprocity.shutterSpeedSelect.appendChild(opt);
-        });
+        const values = appData.reciprocity.shutterSpeeds.filter(s => s.name !== "placeholder");
+        createDial('shutter-speed-dial', 'shutter-speed-select', values, dom);
     }
 
     function populateFilmSelect() {
@@ -221,6 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const tabs = Object.values(dom.tabs);
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
+                triggerHaptic(10);
                 // 清空所有消息区域，防止内容重叠
                 dom.reciprocity.messageArea.hidden = true;
                 dom.dof.messageArea.hidden = true;
@@ -246,6 +235,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const deltaY = touchEndY - touchStartY;
 
             if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                // Prevent tab swipe if the user is interacting with a dial
+                if (e.target.closest('.dial-container')) return;
+
                 hideTooltip(); // Hide tooltip on swipe
                 const currentActiveIndex = tabs.findIndex(tab => tab.classList.contains('active'));
                 if (deltaX < 0 && currentActiveIndex < tabs.length - 1) {
@@ -258,9 +250,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
         // Calculation Buttons
-        dom.reciprocity.calculateBtn.addEventListener('click', () => handleReciprocityCalculate(dom, appData, showMessage, startTimer));
-        dom.dof.calculateBtn.addEventListener('click', () => handleDofCalculate(dom, appData, showMessage));
-        dom.flash.calculateBtn.addEventListener('click', () => handleFlashCalculate(dom, appData, showMessage));
+        dom.reciprocity.calculateBtn.addEventListener('click', () => { triggerHaptic(20); handleReciprocityCalculate(dom, appData, showMessage, startTimer); });
+        dom.dof.calculateBtn.addEventListener('click', () => { triggerHaptic(20); handleDofCalculate(dom, appData, showMessage); });
+        dom.flash.calculateBtn.addEventListener('click', () => { triggerHaptic(20); handleFlashCalculate(dom, appData, showMessage); });
 
         // Timer
         dom.timer.stopBtn.addEventListener('click', () => stopTimer(dom, appData));
@@ -286,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.querySelectorAll('input[type="number"], input[inputmode="numeric"], input[inputmode="decimal"]').forEach(inputEl => {
-            if(inputEl) {
+            if (inputEl) {
                 inputEl.addEventListener('input', cleanNumericInput);
             }
         });
@@ -299,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         dom.reciprocity.minInput.addEventListener('input', handleManualTimeInput);
         dom.reciprocity.secInput.addEventListener('input', handleManualTimeInput);
-        dom.reciprocity.shutterSpeedSelect.addEventListener('change', (e) => {
+        dom.reciprocity.shutterSpeedSelect.addEventListener('input', (e) => {
             const time = parseFloat(e.target.value);
             if (!isNaN(time)) {
                 appData.isUpdatingFromSelect = true;
@@ -311,12 +303,13 @@ document.addEventListener('DOMContentLoaded', function() {
             debouncedSaveState(dom);
         });
 
-        // Stepper and Chip buttons
-        document.getElementById('main-content').addEventListener('click', function(e) {
-            const target = e.target.closest('.stepper-btn') || e.target.closest('.quick-select-chip');
+        // Stepper buttons
+        document.getElementById('main-content').addEventListener('click', function (e) {
+            const target = e.target.closest('.stepper-btn');
             if (!target) return;
 
             if (target.classList.contains('stepper-btn')) {
+                triggerHaptic(15);
                 const inputId = target.dataset.target;
                 const step = parseFloat(target.dataset.step);
                 const inputEl = document.getElementById(inputId);
@@ -324,20 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let currentVal = parseFloat(inputEl.value) || 0;
                 currentVal += target.classList.contains('stepper-plus') ? step : -step;
                 inputEl.value = Math.max(0, parseFloat(currentVal.toFixed(4)));
-                inputEl.dispatchEvent(new Event('input'));
-            }
-
-            if (target.classList.contains('quick-select-chip')) {
-                const value = target.dataset.value;
-                const targetInputId = target.dataset.targetInput;
-                if (targetInputId) {
-                    const inputEl = document.getElementById(targetInputId);
-                    if (inputEl) {
-                        inputEl.value = value;
-                        inputEl.dispatchEvent(new Event('input'));
-                        syncChipsToInput(targetInputId, target.parentElement.id, dom);
-                    }
-                }
+                inputEl.dispatchEvent(new Event('input', { bubbles: true }));
             }
         });
 
@@ -365,18 +345,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const preferredLanguage = localStorage.getItem('language') || 'zh';
         setLanguage(preferredLanguage, appData, dom, populateAllSelects, handleFilmSelectChange);
 
+        // Initialize Dial Arrays
+        const fStops = [0.95, 1.2, 1.4, 1.8, 2, 2.8, 4, 5.6, 8, 11, 16, 22, 32, 45, 64];
+        const isos = [6, 12, 25, 50, 64, 100, 160, 200, 400, 800, 1600, 3200, 6400];
+
+        createDial('dof-aperture-dial', 'dof-aperture', fStops, dom, 'f/');
+        createDial('flash-aperture-dial', 'flash-aperture', fStops, dom, 'f/');
+        createDial('flash-iso-dial', 'flash-iso', isos, dom);
+
         loadState(dom, appData, handleFilmSelectChange, (mode) => updateFlashUI(mode, dom));
 
-        // Initialize Quick Chips
-        const standardApertures = [1.4, 2, 2.8, 4, 5.6, 8, 11, 16, 22];
-        const standardIsos = [50, 100, 200, 400, 800, 1600, 3200];
-        createQuickChips('aperture-quick-select', 'dof-aperture', standardApertures, dom, 'f/');
-        createQuickChips('flash-aperture-quick-select', 'flash-aperture', standardApertures, dom, 'f/');
-        createQuickChips('iso-quick-select', 'flash-iso', standardIsos, dom);
-
-        syncChipsToInput('dof-aperture', 'aperture-quick-select', dom);
-        syncChipsToInput('flash-aperture', 'flash-aperture-quick-select', dom);
-        syncChipsToInput('flash-iso', 'iso-quick-select', dom);
+        // Ensure visual state of dials updates if loaded from state
+        setTimeout(() => {
+            if (dom.dof.aperture.value) setDialValue('dof-aperture-dial', 'dof-aperture', dom.dof.aperture.value);
+            if (dom.flash.apertureInput.value) setDialValue('flash-aperture-dial', 'flash-aperture', dom.flash.apertureInput.value);
+            if (dom.flash.isoInput.value) setDialValue('flash-iso-dial', 'flash-iso', dom.flash.isoInput.value);
+            if (dom.reciprocity.shutterSpeedSelect.value) setDialValue('shutter-speed-dial', 'shutter-speed-select', dom.reciprocity.shutterSpeedSelect.value);
+        }, 300);
 
         // Bind all event listeners
         initializeEventListeners();

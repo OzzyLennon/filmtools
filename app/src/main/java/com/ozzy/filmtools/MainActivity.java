@@ -5,6 +5,8 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -15,8 +17,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.WebViewClientCompat;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import android.annotation.SuppressLint;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
@@ -60,8 +64,33 @@ public class MainActivity extends AppCompatActivity {
                 insetsController.setAppearanceLightNavigationBars(!isDark);
             });
         }
+
+        @JavascriptInterface
+        public void vibrate(int duration) {
+            VibrationHelper.vibrate(mContext, duration);
+        }
+
+        @JavascriptInterface
+        public void startTimerService(int totalSeconds) {
+            Intent intent = new Intent(mContext, TimerService.class);
+            intent.setAction(TimerService.ACTION_START);
+            intent.putExtra(TimerService.EXTRA_TOTAL_SECONDS, totalSeconds);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mContext.startForegroundService(intent);
+            } else {
+                mContext.startService(intent);
+            }
+        }
+
+        @JavascriptInterface
+        public void stopTimerService() {
+            Intent intent = new Intent(mContext, TimerService.class);
+            intent.setAction(TimerService.ACTION_STOP);
+            mContext.startService(intent);
+        }
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,8 +125,9 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
                 String jsonData = loadJSONFromAsset();
                 if (jsonData != null) {
-                    // 使用反引号(`)将jsonData包裹成一个合法的JavaScript多行字符串
-                    String script = "javascript:window.appDataString = `" + jsonData + "`;";
+                    // 转义反引号和反斜杠，防止破坏JS模板字符串语法
+                    String safeData = jsonData.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${");
+                    String script = "window.appDataString = `" + safeData + "`";
                     view.evaluateJavascript(script, null);
                 }
             }
@@ -120,19 +150,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String loadJSONFromAsset() {
-        String json = null;
-        try {
-            InputStream is = getAssets().open("app_data.json");
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            json = new String(buffer, StandardCharsets.UTF_8);
+        try (InputStream is = getAssets().open("app_data.json")) {
+            ByteArrayOutputStream result = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int length;
+            while ((length = is.read(buffer)) != -1) {
+                result.write(buffer, 0, length);
+            }
+            return result.toString(StandardCharsets.UTF_8.name());
         } catch (IOException ex) {
             ex.printStackTrace();
             return null;
         }
-        return json;
     }
 
 }
