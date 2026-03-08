@@ -19,6 +19,53 @@ function calculateByRules(tm, rules) {
     return -1;
 }
 
+function calculateByPoints(tm, points) {
+    if (!points || points.length === 0) return -1;
+
+    // If exact match
+    const exact = points.find(p => Math.abs(p[0] - tm) < 0.001);
+    if (exact) return exact[1];
+
+    // If below minimum point, just return tm (assume no reciprocity failure for very short times not in chart)
+    if (tm < points[0][0]) {
+        return tm;
+    }
+
+    // Find enclosing interval
+    let p1 = null, p2 = null;
+    for (let i = 0; i < points.length - 1; i++) {
+        if (tm > points[i][0] && tm < points[i + 1][0]) {
+            p1 = points[i];
+            p2 = points[i + 1];
+            break;
+        }
+    }
+
+    // Extrapolate if above maximum
+    if (!p1 || !p2) {
+        const p_len = points.length;
+        if (p_len >= 2) {
+            p1 = points[p_len - 2];
+            p2 = points[p_len - 1];
+        } else {
+            // Only 1 point, can't extrapolate slope, just use it linearly
+            return tm * (points[0][1] / points[0][0]);
+        }
+    }
+
+    // Log-Log Interpolation: log(Tc) = log(Tc1) + (log(Tm) - log(Tm1)) * (log(Tc2) - log(Tc1)) / (log(Tm2) - log(Tm1))
+    const logTm = Math.log(tm);
+    const logTm1 = Math.log(p1[0]);
+    const logTc1 = Math.log(p1[1]);
+    const logTm2 = Math.log(p2[0]);
+    const logTc2 = Math.log(p2[1]);
+
+    const slope = (logTc2 - logTc1) / (logTm2 - logTm1);
+    const logTc = logTc1 + (logTm - logTm1) * slope;
+
+    return Math.exp(logTc);
+}
+
 export function handleReciprocityCalculate(dom, appData, showMessage, startTimer) {
     const mVal = parseFloat(dom.reciprocity.minInput.value) || 0;
     const sVal = parseFloat(dom.reciprocity.secInput.value) || 0;
@@ -64,17 +111,21 @@ export function handleReciprocityCalculate(dom, appData, showMessage, startTimer
     }
 
     let tc;
-    if (film.rules) {
+    if (film.points) {
+        tc = calculateByPoints(tbr, film.points);
+        // Fallback or adjustment if calculation goes wild
+        if (tc > 360000) tc = -1; // Cap at 100 hours
+    } else if (film.rules) {
         tc = calculateByRules(tbr, film.rules);
     } else if (pVal) {
-        tc = tbr > 1 ? tbr ** pVal : tbr;
+        tc = tbr > 1 ? Math.pow(tbr, pVal) : tbr;
     } else {
         tc = tbr;
     }
 
     if (!isFinite(tc) || tc < 0) {
         showMessage(dom.reciprocity.messageArea, 'error', 'errorOutOfRange', null, null, appData);
-    } else if (tc < 1 && Math.abs(tc - tbr) < 0.1) {
+    } else if (tc <= tbr * 1.05) { // Relaxed to 5% buffer for "no comp"
         showMessage(dom.reciprocity.messageArea, 'info', 'infoNoCompensation', null, null, appData);
     } else {
         showMessage(dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', null, tc, appData, (time) => startTimer(time, dom, appData));
@@ -138,7 +189,7 @@ export function handleFlashCalculate(dom, appData, showMessage) {
         resHtml = `<p class="text-4xl result-text mt-1">f/${res.toFixed(1)}</p>`;
     } else if (mode === 'distance') {
         if (isNaN(apt) || isNaN(pwr) || apt <= 0) {
-             showMessage(dom.flash.messageArea, 'error', 'errorInvalidFlash', null, null, appData);
+            showMessage(dom.flash.messageArea, 'error', 'errorInvalidFlash', null, null, appData);
             return;
         }
         const res = (effGn * Math.sqrt(pwr)) / apt;
@@ -146,12 +197,12 @@ export function handleFlashCalculate(dom, appData, showMessage) {
         resHtml = `<p class="text-4xl result-text mt-1">${res.toFixed(1)}<span class="text-2xl ml-2 opacity-75">${langData.unitMeter}</span></p>`;
     } else if (mode === 'power') {
         if (isNaN(apt) || isNaN(dist) || apt <= 0 || dist <= 0) {
-             showMessage(dom.flash.messageArea, 'error', 'errorInvalidFlash', null, null, appData);
+            showMessage(dom.flash.messageArea, 'error', 'errorInvalidFlash', null, null, appData);
             return;
         }
         const reqPwr = ((apt * dist) / effGn) ** 2;
         if (reqPwr > 1 || !isFinite(reqPwr)) {
-             showMessage(dom.flash.messageArea, 'error', 'errorOutOfRange', null, null, appData);
+            showMessage(dom.flash.messageArea, 'error', 'errorOutOfRange', null, null, appData);
             return;
         }
         const clPwr = appData.flash.flashPowers.reduce((p, c) => Math.abs(c.value - reqPwr) < Math.abs(p.value - reqPwr) ? c : p);

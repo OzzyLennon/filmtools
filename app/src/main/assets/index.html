@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>胶片摄影工具箱</title>
     <meta name="theme-color" content="#0D1117">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="胶片工具箱">
 
@@ -18,9 +19,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 
     <style>
-        :root { --transition-speed: 0.2s; }
-        [data-theme="dark"] { --bg-primary: #0D1117; --bg-secondary: #161B22; --text-primary: #E6EDF3; --text-secondary: #8B949E; --accent-primary: #33D7FF; --accent-primary-text: #0D1117; --accent-secondary: #FF00E6; --border-color: #30363D; --error-color: #F85149; --success-color: #2DA44E; }
-        [data-theme="light"] { --bg-primary: #ffffff; --bg-secondary: #f6f8fa; --text-primary: #24292f; --text-secondary: #57606a; --accent-primary: #0969da; --accent-primary-text: #ffffff; --accent-secondary: #8250df; --border-color: #d0d7de; --error-color: #d73a49; --success-color: #2DA44E; }
+        :root {
+            --transition-speed: 0.2s;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0D1117;
+            --bg-secondary: #161B22;
+            --text-primary: #E6EDF3;
+            --text-secondary: #8B949E;
+            --accent-primary: #33D7FF;
+            --accent-primary-text: #0D1117;
+            --accent-secondary: #FF00E6;
+            --border-color: #30363D;
+            --error-color: #F85149;
+            --success-color: #2DA44E;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f6f8fa;
+            --text-primary: #24292f;
+            --text-secondary: #57606a;
+            --accent-primary: #0969da;
+            --accent-primary-text: #ffffff;
+            --accent-secondary: #8250df;
+            --border-color: #d0d7de;
+            --error-color: #d73a49;
+            --success-color: #2DA44E;
+        }
 
         body {
             font-family: 'Inter', 'Roboto', sans-serif;
@@ -29,236 +56,612 @@
             transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        .app-title { color: var(--text-primary); font-weight: 900; }
-        .subtitle { color: var(--accent-secondary); }
-        .label { color: var(--text-secondary); font-weight: 500; }
-        .result-label { color: var(--text-secondary); }
-        .result-text { color: var(--accent-primary); font-weight: 700; }
+        .app-title {
+            color: var(--text-primary);
+            font-weight: 900;
+        }
+
+        .subtitle {
+            color: var(--accent-secondary);
+        }
+
+        .label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+        }
+
+        .result-text {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
         input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
-        .input, .select { background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem; border-radius: 0.375rem; width: 100%; font-size: 1rem; transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed); }
-        .input:focus, .select:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent); }
-        .select { appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25em; padding-right: 2.5rem !important; }
-        [data-theme="dark"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238B949E'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E"); }
-        [data-theme="light"] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2357606a'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E"); }
-        .timer-card { background-color: var(--bg-secondary); color: var(--text-primary); border-radius: 0.5rem; }
-        .timer-card.finished { background-color: var(--success-color) !important; color: white; }
-        .error-message { background-color: var(--error-color); color: white; padding: 1rem; border-radius: 0.5rem; }
-        .flashing { animation: flash 1s infinite; }
-        @keyframes flash { 50% { background-color: #F85149; } }
-        .tab-button { background-color: transparent; color: var(--text-secondary); border: none; border-bottom: 2px solid transparent; transition: color var(--transition-speed), border-color var(--transition-speed); border-radius: 0; text-align: center; }
-        .tab-button.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
-        .radio-group label { border: 1px solid var(--border-color); color: var(--text-secondary); background-color: var(--bg-primary); transition: all var(--transition-speed); cursor: pointer; }
-        .radio-group input:checked + label { background-color: var(--accent-primary); color: var(--accent-primary-text); border-color: var(--accent-primary); font-weight: 700; }
-        .card { background-color: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--border-color); }
-        .btn-ripple { position: relative; overflow: hidden; transition: background 0.3s, transform 0.1s; }
-        .btn-ripple:active { transform: scale(0.98); }
-        .btn-ripple .ripple { position: absolute; border-radius: 50%; background-color: color-mix(in srgb, var(--text-primary) 60%, transparent); width: 100px; height: 100px; margin-top: -50px; margin-left: -50px; animation: ripple-animation 0.8s; opacity: 0; }
-        @keyframes ripple-animation { from { transform: scale(1); opacity: 0.4; } to { transform: scale(10); opacity: 0; } }
-        .tooltip-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 50%; background-color: var(--text-secondary); color: var(--bg-primary); font-size: 0.75rem; font-weight: bold; cursor: help; user-select: none; -webkit-user-select: none; }
-        [tabindex] { outline: none; }
-        #global-tooltip { position: absolute; background-color: var(--bg-secondary); color: var(--text-primary); padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 400; width: max-content; max-width: 250px; text-align: left; z-index: 1000; pointer-events: none; opacity: 0; transition: opacity 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid var(--border-color); visibility: hidden; }
-        #global-tooltip.visible { opacity: 1; visibility: visible; }
-        .input-stepper { display: flex; align-items: stretch; width: 100%; }
-        .input-stepper .input { text-align: center; border-left: none; border-right: none; border-radius: 0; z-index: 1; }
-        .stepper-btn { background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.75rem; font-size: 1.2rem; line-height: 1; width: 50px; cursor: pointer; transition: background-color 0.2s; user-select: none; }
-        .stepper-btn:hover { background-color: color-mix(in srgb, var(--border-color) 40%, transparent); }
-        .stepper-minus { border-radius: 0.375rem 0 0 0.375rem; }
-        .stepper-plus { border-radius: 0 0.375rem 0.375rem 0; }
-        .quick-select-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
-        .quick-select-chip { background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; cursor: pointer; transition: all 0.2s; }
-        .quick-select-chip:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .quick-select-chip.active { background-color: var(--accent-primary); color: var(--accent-primary-text); border-color: var(--accent-primary); font-weight: 600; }
-        .progress-ring-bg, .progress-ring-fg { fill: none; stroke-width: 8; }
-        .progress-ring-bg { stroke: var(--border-color); }
-        .progress-ring-fg { stroke: var(--success-color); stroke-linecap: round; transform-origin: 50% 50%; transform: rotate(-90deg); transition: stroke-dashoffset 1s linear; }
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .input,
+        .select {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            width: 100%;
+            font-size: 1rem;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed), background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .input:focus,
+        .select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+        }
+
+        .select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25em;
+            padding-right: 2.5rem !important;
+        }
+
+        [data-theme="dark"] .select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%238B949E'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+        }
+
+        [data-theme="light"] .select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2357606a'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+        }
+
+        .timer-card {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border-radius: 0.5rem;
+        }
+
+        .timer-card.finished {
+            background-color: var(--success-color) !important;
+            color: white;
+        }
+
+        .error-message {
+            background-color: var(--error-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .flashing {
+            animation: flash 1s infinite;
+        }
+
+        @keyframes flash {
+            50% {
+                background-color: #F85149;
+            }
+        }
+
+        .tab-button {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: color var(--transition-speed), border-color var(--transition-speed);
+            border-radius: 0;
+            text-align: center;
+        }
+
+        .tab-button.active {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        .radio-group label {
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            background-color: var(--bg-primary);
+            transition: all var(--transition-speed);
+            cursor: pointer;
+        }
+
+        .radio-group input:checked+label {
+            background-color: var(--accent-primary);
+            color: var(--accent-primary-text);
+            border-color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .card {
+            background-color: var(--bg-secondary);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .btn-ripple:active {
+            transform: scale(0.98);
+        }
+
+        .btn-ripple .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: color-mix(in srgb, var(--text-primary) 60%, transparent);
+            width: 100px;
+            height: 100px;
+            margin-top: -50px;
+            margin-left: -50px;
+            animation: ripple-animation 0.8s;
+            opacity: 0;
+        }
+
+        @keyframes ripple-animation {
+            from {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+
+            to {
+                transform: scale(10);
+                opacity: 0;
+            }
+        }
+
+        .tooltip-trigger {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            color: var(--bg-primary);
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: help;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        [tabindex] {
+            outline: none;
+        }
+
+        #global-tooltip {
+            position: absolute;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 400;
+            width: max-content;
+            max-width: 250px;
+            text-align: left;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            visibility: hidden;
+        }
+
+        #global-tooltip.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .input-stepper {
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .input-stepper .input {
+            text-align: center;
+            border-left: none;
+            border-right: none;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        .stepper-btn {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-size: 1.2rem;
+            line-height: 1;
+            width: 50px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        .stepper-btn:hover {
+            background-color: color-mix(in srgb, var(--border-color) 40%, transparent);
+        }
+
+        .stepper-minus {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        .stepper-plus {
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+
+        .quick-select-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .quick-select-chip {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-select-chip:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .quick-select-chip.active {
+            background-color: var(--accent-primary);
+            color: var(--accent-primary-text);
+            border-color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .progress-ring-bg,
+        .progress-ring-fg {
+            fill: none;
+            stroke-width: 8;
+        }
+
+        .progress-ring-bg {
+            stroke: var(--border-color);
+        }
+
+        .progress-ring-fg {
+            stroke: var(--success-color);
+            stroke-linecap: round;
+            transform-origin: 50% 50%;
+            transform: rotate(-90deg);
+            transition: stroke-dashoffset 1s linear;
+        }
     </style>
 </head>
-<body class="min-h-screen">
-<div class="w-full max-w-md mx-auto flex flex-col h-screen">
-    <header class="mb-8 p-4 pt-8">
-        <div class="flex justify-end items-center space-x-2">
-            <button id="theme-switcher" type="button" class="btn-ripple p-2 rounded-full" style="color: var(--text-secondary);"></button>
-            <button id="lang-switcher" type="button" class="btn-ripple border text-sm font-bold py-1 px-3 rounded-md" style="color: var(--text-secondary); border-color: var(--border-color);" data-lang-key="langSwitch"></button>
-        </div>
-        <div class="text-center mt-2">
-            <h1 class="text-4xl font-black app-title" data-lang-key="title"></h1>
-            <p class="text-lg subtitle mt-2 font-semibold" data-lang-key="subtitle"></p>
-        </div>
-    </header>
 
-    <div id="main-content" style="visibility: hidden;" class="flex-1 overflow-y-auto pb-4 px-4">
-        <div class="flex mb-4" role="tablist" aria-label="Calculators" style="border-bottom: 1px solid var(--border-color);">
-            <button id="tab-reciprocity" type="button" role="tab" aria-selected="true" class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
-            <button id="tab-dof" type="button" role="tab" aria-selected="false" class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
-            <button id="tab-flash" type="button" role="tab" aria-selected="false" class="tab-button grow p-3 font-bold" data-lang-key="tabFlash"></button>
-        </div>
-        <div id="panels-wrapper" class="overflow-hidden">
-            <div id="panels-container" class="flex transition-transform duration-300 ease-in-out">
-                <div id="panel-reciprocity" role="tabpanel" class="w-full flex-shrink-0">
-                    <main class="card p-6 space-y-5">
-                        <div>
-                            <label for="film-select" class="block mb-1 text-md label" data-lang-key="labelFilm"></label>
-                            <select id="film-select" class="select text-sm"></select>
-                        </div>
-                        <div id="delete-film-area" class="hidden text-right">
-                            <button id="delete-film-btn" type="button" class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold" data-lang-key="deleteThisFilm"></button>
-                        </div>
-                        <div id="custom-factor-group" class="hidden space-y-2">
-                            <label for="custom-factor" class="flex items-center space-x-2 text-md label"> <span data-lang-key="labelCustomFactor"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipPValue" tabindex="0">?</span> </label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="custom-factor" data-step="0.01">-</button>
-                                <input type="number" step="any" inputmode="decimal" id="custom-factor" class="input" data-lang-placeholder="placeholderPValue">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="custom-factor" data-step="0.01">+</button>
+<body class="min-h-screen">
+    <div class="w-full max-w-md mx-auto flex flex-col h-screen">
+        <header class="mb-8 p-4" style="padding-top: max(2rem, env(safe-area-inset-top));">
+            <div class="flex justify-end items-center space-x-2">
+                <button id="theme-switcher" type="button" class="btn-ripple p-2 rounded-full"
+                    style="color: var(--text-secondary);"></button>
+                <button id="lang-switcher" type="button"
+                    class="btn-ripple border text-sm font-bold py-1 px-3 rounded-md"
+                    style="color: var(--text-secondary); border-color: var(--border-color);"
+                    data-lang-key="langSwitch"></button>
+            </div>
+            <div class="text-center mt-2">
+                <h1 class="text-4xl font-black app-title" data-lang-key="title"></h1>
+                <p class="text-lg subtitle mt-2 font-semibold" data-lang-key="subtitle"></p>
+            </div>
+        </header>
+
+        <div id="main-content" style="visibility: hidden; padding-bottom: max(1rem, env(safe-area-inset-bottom));"
+            class="flex-1 overflow-y-auto px-4">
+            <div class="flex mb-4" role="tablist" aria-label="Calculators"
+                style="border-bottom: 1px solid var(--border-color);">
+                <button id="tab-reciprocity" type="button" role="tab" aria-selected="true"
+                    class="tab-button grow p-3 font-bold active" data-lang-key="tabReciprocity"></button>
+                <button id="tab-dof" type="button" role="tab" aria-selected="false"
+                    class="tab-button grow p-3 font-bold" data-lang-key="tabDof"></button>
+                <button id="tab-flash" type="button" role="tab" aria-selected="false"
+                    class="tab-button grow p-3 font-bold" data-lang-key="tabFlash"></button>
+            </div>
+            <div id="panels-wrapper" class="overflow-hidden">
+                <div id="panels-container" class="flex transition-transform duration-300 ease-in-out">
+                    <div id="panel-reciprocity" role="tabpanel" class="w-full flex-shrink-0">
+                        <main class="card p-6 space-y-5">
+                            <div>
+                                <label for="film-select" class="block mb-1 text-md label"
+                                    data-lang-key="labelFilm"></label>
+                                <select id="film-select" class="select text-sm"></select>
                             </div>
-                            <div class="text-right"> <button id="save-custom-btn" type="button" class="btn-ripple font-bold rounded-md px-4 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnSave"></button> </div>
-                        </div>
-                        <div>
-                            <label for="nd-filter-select" class="block mb-1 text-md label" data-lang-key="labelND"></label>
-                            <select id="nd-filter-select" class="select text-sm"></select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="label flex items-center space-x-2"> <span data-lang-key="labelBellows"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipBellows" tabindex="0">?</span> </label>
-                            <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                            <div id="delete-film-area" class="hidden text-right">
+                                <button id="delete-film-btn" type="button"
+                                    class="btn-ripple text-red-500 text-sm hover:text-red-400 px-3 py-1 font-semibold"
+                                    data-lang-key="deleteThisFilm"></button>
+                            </div>
+                            <div id="custom-factor-group" class="hidden space-y-2">
+                                <label for="custom-factor" class="flex items-center space-x-2 text-md label"> <span
+                                        data-lang-key="labelCustomFactor"></span> <span class="tooltip-trigger"
+                                        data-tooltip-key="tooltipPValue" tabindex="0">?</span> </label>
                                 <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="focal-length" data-step="1">-</button>
-                                    <input type="number" inputmode="numeric" id="focal-length" class="input text-center" data-lang-placeholder="placeholderFocalLength">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="focal-length" data-step="1">+</button>
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="custom-factor"
+                                        data-step="0.01">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="custom-factor" class="input"
+                                        data-lang-placeholder="placeholderPValue">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="custom-factor"
+                                        data-step="0.01">+</button>
                                 </div>
-                                <span class="text-gray-400 self-center">mm</span>
+                                <div class="text-right"> <button id="save-custom-btn" type="button"
+                                        class="btn-ripple font-bold rounded-md px-4 py-2"
+                                        style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                                        data-lang-key="btnSave"></button> </div>
+                            </div>
+                            <div>
+                                <label for="nd-filter-select" class="block mb-1 text-md label"
+                                    data-lang-key="labelND"></label>
+                                <select id="nd-filter-select" class="select text-sm"></select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="label flex items-center space-x-2"> <span
+                                        data-lang-key="labelBellows"></span> <span class="tooltip-trigger"
+                                        data-tooltip-key="tooltipBellows" tabindex="0">?</span> </label>
+                                <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                                    <div class="input-stepper">
+                                        <button type="button" class="stepper-btn stepper-minus"
+                                            data-target="focal-length" data-step="1">-</button>
+                                        <input type="number" inputmode="numeric" id="focal-length"
+                                            class="input text-center" data-lang-placeholder="placeholderFocalLength">
+                                        <button type="button" class="stepper-btn stepper-plus"
+                                            data-target="focal-length" data-step="1">+</button>
+                                    </div>
+                                    <span class="text-gray-400 self-center">mm</span>
+                                    <div class="input-stepper">
+                                        <button type="button" class="stepper-btn stepper-minus"
+                                            data-target="bellows-extension" data-step="1">-</button>
+                                        <input type="number" inputmode="numeric" id="bellows-extension"
+                                            class="input text-center" data-lang-placeholder="placeholderBellows">
+                                        <button type="button" class="stepper-btn stepper-plus"
+                                            data-target="bellows-extension" data-step="1">+</button>
+                                    </div>
+                                    <span class="text-gray-400 self-center">mm</span>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="label" data-lang-key="labelMeteredTime"></label>
+                                <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                                    <div class="input-stepper">
+                                        <button type="button" class="stepper-btn stepper-minus"
+                                            data-target="metered-time-min" data-step="1">-</button>
+                                        <input type="number" inputmode="numeric" id="metered-time-min"
+                                            class="input text-center" placeholder="0">
+                                        <button type="button" class="stepper-btn stepper-plus"
+                                            data-target="metered-time-min" data-step="1">+</button>
+                                    </div>
+                                    <span class="text-gray-400 self-center" data-lang-key="unitMin"></span>
+                                    <div class="input-stepper">
+                                        <button type="button" class="stepper-btn stepper-minus"
+                                            data-target="metered-time-sec" data-step="1">-</button>
+                                        <input type="number" step="any" inputmode="decimal" id="metered-time-sec"
+                                            class="input text-center" placeholder="30">
+                                        <button type="button" class="stepper-btn stepper-plus"
+                                            data-target="metered-time-sec" data-step="1">+</button>
+                                    </div>
+                                    <span class="text-gray-400 self-center" data-lang-key="unitSec"></span>
+                                </div>
+                            </div>
+                            <div>
+                                <label for="shutter-speed-select" class="block mb-1 text-md label"
+                                    data-lang-key="labelShutterSpeed"></label>
+                                <select id="shutter-speed-select" class="select text-sm"></select>
+                            </div>
+                            <button id="calculate-btn" type="button"
+                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
+                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                                data-lang-key="btnCalculate"></button>
+                        </main>
+                        <div id="message-area" class="mt-6" hidden></div>
+                    </div>
+                    <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
+                        <main class="card p-6 space-y-5">
+                            <div>
+                                <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label"> <span
+                                        data-lang-key="labelFormat"></span> <span class="tooltip-trigger"
+                                        data-tooltip-key="tooltipFormat" tabindex="0">?</span> </label>
+                                <select id="dof-format" class="select text-sm"></select>
+                            </div>
+                            <div>
+                                <label for="dof-focal-length" class="block mb-1 text-md label"
+                                    data-lang-key="labelHfFocalLength"></label>
                                 <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="bellows-extension" data-step="1">-</button>
-                                    <input type="number" inputmode="numeric" id="bellows-extension" class="input text-center" data-lang-placeholder="placeholderBellows">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="bellows-extension" data-step="1">+</button>
+                                    <button type="button" class="stepper-btn stepper-minus"
+                                        data-target="dof-focal-length" data-step="1">-</button>
+                                    <input type="number" inputmode="numeric" id="dof-focal-length"
+                                        class="input text-center" data-lang-placeholder="placeholderHfFocalLength">
+                                    <button type="button" class="stepper-btn stepper-plus"
+                                        data-target="dof-focal-length" data-step="1">+</button>
                                 </div>
-                                <span class="text-gray-400 self-center">mm</span>
                             </div>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="label" data-lang-key="labelMeteredTime"></label>
-                            <div class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-2">
+                            <div>
+                                <label for="dof-aperture" class="block mb-1 text-md label"
+                                    data-lang-key="labelHfAperture"></label>
                                 <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="metered-time-min" data-step="1">-</button>
-                                    <input type="number" inputmode="numeric" id="metered-time-min" class="input text-center" placeholder="0">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="metered-time-min" data-step="1">+</button>
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="dof-aperture"
+                                        data-step="0.1">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="dof-aperture"
+                                        class="input text-center" data-lang-placeholder="placeholderHfAperture">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="dof-aperture"
+                                        data-step="0.1">+</button>
                                 </div>
-                                <span class="text-gray-400 self-center" data-lang-key="unitMin"></span>
+                                <div id="aperture-quick-select" class="quick-select-bar"></div>
+                            </div>
+                            <div>
+                                <label for="dof-distance" class="block mb-1 text-md label"
+                                    data-lang-key="labelFocusDistance"></label>
                                 <div class="input-stepper">
-                                    <button type="button" class="stepper-btn stepper-minus" data-target="metered-time-sec" data-step="1">-</button>
-                                    <input type="number" step="any" inputmode="decimal" id="metered-time-sec" class="input text-center" placeholder="30">
-                                    <button type="button" class="stepper-btn stepper-plus" data-target="metered-time-sec" data-step="1">+</button>
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="dof-distance"
+                                        data-step="0.5">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="dof-distance"
+                                        class="input text-center" data-lang-placeholder="placeholderDistance">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="dof-distance"
+                                        data-step="0.5">+</button>
                                 </div>
-                                <span class="text-gray-400 self-center" data-lang-key="unitSec"></span>
                             </div>
-                        </div>
-                        <div>
-                            <label for="shutter-speed-select" class="block mb-1 text-md label" data-lang-key="labelShutterSpeed"></label>
-                            <select id="shutter-speed-select" class="select text-sm"></select>
-                        </div>
-                        <button id="calculate-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculate"></button>
-                    </main>
-                    <div id="message-area" class="mt-6" hidden></div>
-                </div>
-                <div id="panel-dof" role="tabpanel" class="w-full flex-shrink-0">
-                    <main class="card p-6 space-y-5">
-                        <div>
-                            <label for="dof-format" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelFormat"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipFormat" tabindex="0">?</span> </label>
-                            <select id="dof-format" class="select text-sm"></select>
-                        </div>
-                        <div>
-                            <label for="dof-focal-length" class="block mb-1 text-md label" data-lang-key="labelHfFocalLength"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="dof-focal-length" data-step="1">-</button>
-                                <input type="number" inputmode="numeric" id="dof-focal-length" class="input text-center" data-lang-placeholder="placeholderHfFocalLength">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="dof-focal-length" data-step="1">+</button>
+                            <button id="calculate-dof-btn" type="button"
+                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
+                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                                data-lang-key="btnCalculateDof"></button>
+                        </main>
+                        <div id="dof-message-area" class="mt-6" hidden></div>
+                    </div>
+                    <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
+                        <main class="card p-6 space-y-5">
+                            <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label>
+                                <div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio"
+                                        id="calc-aperture" name="flash-mode" value="aperture" class="hidden"
+                                        checked><label for="calc-aperture"
+                                        class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md"
+                                        data-lang-key="calcModeAperture"></label><input type="radio" id="calc-distance"
+                                        name="flash-mode" value="distance" class="hidden"><label for="calc-distance"
+                                        class="w-full text-center px-4 py-2 text-sm font-medium border-y"
+                                        data-lang-key="calcModeDistance"></label><input type="radio" id="calc-power"
+                                        name="flash-mode" value="power" class="hidden"><label for="calc-power"
+                                        class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md"
+                                        data-lang-key="calcModePower"></label></div>
                             </div>
-                        </div>
-                        <div>
-                            <label for="dof-aperture" class="block mb-1 text-md label" data-lang-key="labelHfAperture"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="dof-aperture" data-step="0.1">-</button>
-                                <input type="number" step="any" inputmode="decimal" id="dof-aperture" class="input text-center" data-lang-placeholder="placeholderHfAperture">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="dof-aperture" data-step="0.1">+</button>
+                            <div>
+                                <label for="flash-gn" class="flex items-center space-x-2 mb-1 text-md label"> <span
+                                        data-lang-key="labelGuideNumber"></span> <span class="tooltip-trigger"
+                                        data-tooltip-key="tooltipGN" tabindex="0">?</span> </label>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-gn"
+                                        data-step="1">-</button>
+                                    <input type="number" inputmode="numeric" id="flash-gn" class="input"
+                                        data-lang-placeholder="placeholderGuideNumber">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-gn"
+                                        data-step="1">+</button>
+                                </div>
                             </div>
-                            <div id="aperture-quick-select" class="quick-select-bar"></div>
-                        </div>
-                        <div>
-                            <label for="dof-distance" class="block mb-1 text-md label" data-lang-key="labelFocusDistance"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="dof-distance" data-step="0.5">-</button>
-                                <input type="number" step="any" inputmode="decimal" id="dof-distance" class="input text-center" data-lang-placeholder="placeholderDistance">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="dof-distance" data-step="0.5">+</button>
+                            <div>
+                                <label for="flash-iso" class="block mb-1 text-md label"
+                                    data-lang-key="labelISO"></label>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-iso"
+                                        data-step="10">-</button>
+                                    <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-iso"
+                                        data-step="10">+</button>
+                                </div>
+                                <div id="iso-quick-select" class="quick-select-bar"></div>
                             </div>
-                        </div>
-                        <button id="calculate-dof-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnCalculateDof"></button>
-                    </main>
-                    <div id="dof-message-area" class="mt-6" hidden></div>
-                </div>
-                <div id="panel-flash" role="tabpanel" class="w-full flex-shrink-0">
-                    <main class="card p-6 space-y-5">
-                        <div><label class="block mb-2 text-md label" data-lang-key="labelCalcMode"></label><div class="flex rounded-md shadow-sm radio-group" role="group"><input type="radio" id="calc-aperture" name="flash-mode" value="aperture" class="hidden" checked><label for="calc-aperture" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-l rounded-l-md" data-lang-key="calcModeAperture"></label><input type="radio" id="calc-distance" name="flash-mode" value="distance" class="hidden"><label for="calc-distance" class="w-full text-center px-4 py-2 text-sm font-medium border-y" data-lang-key="calcModeDistance"></label><input type="radio" id="calc-power" name="flash-mode" value="power" class="hidden"><label for="calc-power" class="w-full text-center px-4 py-2 text-sm font-medium border-y border-r rounded-r-md" data-lang-key="calcModePower"></label></div></div>
-                        <div>
-                            <label for="flash-gn" class="flex items-center space-x-2 mb-1 text-md label"> <span data-lang-key="labelGuideNumber"></span> <span class="tooltip-trigger" data-tooltip-key="tooltipGN" tabindex="0">?</span> </label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-gn" data-step="1">-</button>
-                                <input type="number" inputmode="numeric" id="flash-gn" class="input" data-lang-placeholder="placeholderGuideNumber">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-gn" data-step="1">+</button>
+                            <div><label for="flash-modifier" class="block mb-1 text-md label"
+                                    data-lang-key="labelModifier"></label><select id="flash-modifier"
+                                    class="select text-sm"></select></div>
+                            <div id="flash-aperture-group">
+                                <label for="flash-aperture" class="block mb-1 text-md label"
+                                    data-lang-key="labelFlashAperture"></label>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-aperture"
+                                        data-step="0.1">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="flash-aperture"
+                                        class="input" data-lang-placeholder="placeholderFlashAperture">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-aperture"
+                                        data-step="0.1">+</button>
+                                </div>
+                                <div id="flash-aperture-quick-select" class="quick-select-bar"></div>
                             </div>
-                        </div>
-                        <div>
-                            <label for="flash-iso" class="block mb-1 text-md label" data-lang-key="labelISO"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-iso" data-step="10">-</button>
-                                <input type="number" inputmode="numeric" id="flash-iso" class="input" value="100">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-iso" data-step="10">+</button>
+                            <div id="flash-distance-group">
+                                <label for="flash-distance" class="block mb-1 text-md label"
+                                    data-lang-key="labelDistance"></label>
+                                <div class="input-stepper">
+                                    <button type="button" class="stepper-btn stepper-minus" data-target="flash-distance"
+                                        data-step="0.5">-</button>
+                                    <input type="number" step="any" inputmode="decimal" id="flash-distance"
+                                        class="input" data-lang-placeholder="placeholderDistance">
+                                    <button type="button" class="stepper-btn stepper-plus" data-target="flash-distance"
+                                        data-step="0.5">+</button>
+                                </div>
                             </div>
-                            <div id="iso-quick-select" class="quick-select-bar"></div>
-                        </div>
-                        <div><label for="flash-modifier" class="block mb-1 text-md label" data-lang-key="labelModifier"></label><select id="flash-modifier" class="select text-sm"></select></div>
-                        <div id="flash-aperture-group">
-                            <label for="flash-aperture" class="block mb-1 text-md label" data-lang-key="labelFlashAperture"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-aperture" data-step="0.1">-</button>
-                                <input type="number" step="any" inputmode="decimal" id="flash-aperture" class="input" data-lang-placeholder="placeholderFlashAperture">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-aperture" data-step="0.1">+</button>
+                            <div id="flash-power-group">
+                                <label for="flash-power" class="block mb-1 text-md label"
+                                    data-lang-key="labelFlashPower"></label>
+                                <select id="flash-power" class="select text-sm"></select>
                             </div>
-                            <div id="flash-aperture-quick-select" class="quick-select-bar"></div>
-                        </div>
-                        <div id="flash-distance-group">
-                            <label for="flash-distance" class="block mb-1 text-md label" data-lang-key="labelDistance"></label>
-                            <div class="input-stepper">
-                                <button type="button" class="stepper-btn stepper-minus" data-target="flash-distance" data-step="0.5">-</button>
-                                <input type="number" step="any" inputmode="decimal" id="flash-distance" class="input" data-lang-placeholder="placeholderDistance">
-                                <button type="button" class="stepper-btn stepper-plus" data-target="flash-distance" data-step="0.5">+</button>
-                            </div>
-                        </div>
-                        <div id="flash-power-group">
-                            <label for="flash-power" class="block mb-1 text-md label" data-lang-key="labelFlashPower"></label>
-                            <select id="flash-power" class="select text-sm"></select>
-                        </div>
-                        <button id="calculate-flash-btn" type="button" class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnFlashCalculate"></button>
-                    </main>
-                    <div id="flash-message-area" class="mt-6" hidden></div>
+                            <button id="calculate-flash-btn" type="button"
+                                class="btn-ripple w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
+                                style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                                data-lang-key="btnFlashCalculate"></button>
+                        </main>
+                        <div id="flash-message-area" class="mt-6" hidden></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="timer-card" class="hidden text-center p-6 timer-card">
-        <div class="relative w-48 h-48 mx-auto mb-6">
-            <svg class="w-full h-full" viewBox="0 0 100 100">
-                <circle class="progress-ring-bg" cx="50" cy="50" r="45"></circle>
-                <circle id="progress-ring" class="progress-ring-fg" cx="50" cy="50" r="45"></circle>
-            </svg>
-            <h2 id="timer-display" class="absolute inset-0 flex items-center justify-center text-5xl font-bold">00:00</h2>
+        <div id="timer-card" class="hidden text-center p-6 timer-card">
+            <div class="relative w-48 h-48 mx-auto mb-6">
+                <svg class="w-full h-full" viewBox="0 0 100 100">
+                    <circle class="progress-ring-bg" cx="50" cy="50" r="45"></circle>
+                    <circle id="progress-ring" class="progress-ring-fg" cx="50" cy="50" r="45"></circle>
+                </svg>
+                <h2 id="timer-display" class="absolute inset-0 flex items-center justify-center text-5xl font-bold">
+                    00:00</h2>
+            </div>
+            <button id="stop-timer-btn" type="button"
+                class="bg-red-600 text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center"
+                data-lang-key="btnStopTimer"></button>
         </div>
-        <button id="stop-timer-btn" type="button" class="bg-red-600 text-white w-full font-bold rounded-lg text-lg px-5 py-3 text-center" data-lang-key="btnStopTimer"></button>
+        <div id="save-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+            style="z-index: 50;">
+            <div class="card p-6 w-full max-w-sm">
+                <h3 class="text-xl font-bold mb-4" data-lang-key="modalSaveTitle"></h3> <label for="custom-film-name"
+                    class="block mb-1 text-md label" data-lang-key="modalSaveLabel"></label> <input type="text"
+                    id="custom-film-name" class="input" data-lang-placeholder="modalSavePlaceholder">
+                <div class="flex justify-end space-x-4 mt-6"> <button id="cancel-save-btn" type="button"
+                        class="btn-ripple font-bold rounded-lg px-5 py-2"
+                        style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);"
+                        data-lang-key="btnCancel"></button> <button id="confirm-save-btn" type="button"
+                        class="btn-ripple font-bold rounded-lg px-5 py-2"
+                        style="background-color: var(--accent-primary); color: var(--accent-primary-text);"
+                        data-lang-key="btnConfirmSave"></button> </div>
+            </div>
+        </div>
+        <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4"
+            style="z-index: 50;">
+            <div class="card p-6 w-full max-w-sm">
+                <h3 class="text-xl font-bold mb-4" data-lang-key="modalDeleteTitle"></h3>
+                <p id="delete-confirm-text" class="mb-6"></p>
+                <div class="flex justify-end space-x-4"> <button id="cancel-delete-btn" type="button"
+                        class="btn-ripple font-bold rounded-lg px-5 py-2"
+                        style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);"
+                        data-lang-key="btnCancel"></button> <button id="confirm-delete-btn" type="button"
+                        class="btn-ripple text-white font-bold rounded-lg px-5 py-2"
+                        style="background-color: var(--error-color);" data-lang-key="btnConfirmDelete"></button> </div>
+            </div>
+        </div>
     </div>
-    <div id="save-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 50;"> <div class="card p-6 w-full max-w-sm"> <h3 class="text-xl font-bold mb-4" data-lang-key="modalSaveTitle"></h3> <label for="custom-film-name" class="block mb-1 text-md label" data-lang-key="modalSaveLabel"></label> <input type="text" id="custom-film-name" class="input" data-lang-placeholder="modalSavePlaceholder"> <div class="flex justify-end space-x-4 mt-6"> <button id="cancel-save-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnCancel"></button> <button id="confirm-save-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--accent-primary); color: var(--accent-primary-text);" data-lang-key="btnConfirmSave"></button> </div> </div> </div>
-    <div id="delete-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4" style="z-index: 50;"> <div class="card p-6 w-full max-w-sm"> <h3 class="text-xl font-bold mb-4" data-lang-key="modalDeleteTitle"></h3> <p id="delete-confirm-text" class="mb-6"></p> <div class="flex justify-end space-x-4"> <button id="cancel-delete-btn" type="button" class="btn-ripple font-bold rounded-lg px-5 py-2" style="background-color: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border-color);" data-lang-key="btnCancel"></button> <button id="confirm-delete-btn" type="button" class="btn-ripple text-white font-bold rounded-lg px-5 py-2" style="background-color: var(--error-color);" data-lang-key="btnConfirmDelete"></button> </div> </div> </div>
-</div>
-<div id="global-tooltip"></div>
+    <div id="global-tooltip"></div>
 
-<script type="module" src="js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
+
 </html>

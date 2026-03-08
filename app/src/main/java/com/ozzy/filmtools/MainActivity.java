@@ -8,9 +8,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import androidx.webkit.WebViewAssetLoader;
+import androidx.webkit.WebViewClientCompat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void setSystemUITheme(final String theme) {
             runOnUiThread(() -> {
-                if (insetsController == null) return;
+                if (insetsController == null)
+                    return;
                 boolean isDark = "dark".equals(theme);
                 // isAppearanceLightStatusBars 为 true 时，状态栏图标为深色；false 为浅色
                 insetsController.setAppearanceLightStatusBars(!isDark);
@@ -71,14 +76,21 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setAllowFileAccessFromFileURLs(true);
-        webSettings.setAllowFileAccess(true);
 
         // 将我们创建的桥梁实例，添加到WebView中
         webView.addJavascriptInterface(new WebAppInterface(this), "Android");
 
+        final WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
+                .addPathHandler("/assets/", new WebViewAssetLoader.AssetsPathHandler(this))
+                .setDomain("appassets.androidplatform.net")
+                .build();
 
-        webView.setWebViewClient(new WebViewClient() {
+        webView.setWebViewClient(new WebViewClientCompat() {
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return assetLoader.shouldInterceptRequest(request.getUrl());
+            }
+
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
@@ -91,7 +103,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html");
+
+        // 替代已被废弃的 onBackPressed() 方法
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    setEnabled(false); // 禁用此回调，让系统默认处理返回操作
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     public String loadJSONFromAsset() {
@@ -110,12 +135,4 @@ public class MainActivity extends AppCompatActivity {
         return json;
     }
 
-    @Override
-    public void onBackPressed() {
-        if (webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
-    }
 }
