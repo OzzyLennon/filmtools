@@ -4,6 +4,16 @@ export const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" heigh
 export const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
 let audioCtx;
+
+export function resumeAudioContext() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
 export function playBeep() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -26,6 +36,59 @@ export function triggerHaptic(duration = 15) {
 }
 
 export function playTick() {
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        // Mechanical clicks are high-frequency bursts
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(2500, now); // Metallic focus around 2.5kHz
+        filter.Q.setValueAtTime(5, now); // Sharpness of the filter
+
+        // 1. Primary "Impact" - a very short burst of a triangle wave (richer in harmonics than sine)
+        const osc1 = audioCtx.createOscillator();
+        osc1.type = 'triangle'; 
+        osc1.frequency.setValueAtTime(1800 + (Math.random() * 300), now); // Pitch randomization
+
+        // 2. Secondary "Metallic PING" - a higher sine wave
+        const osc2 = audioCtx.createOscillator();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(4500 + (Math.random() * 500), now);
+
+        // Envelope: Instant attack, extremely sharp decay for "crispness"
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.06, now + 0.002); // Sharp impact
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.015); // Fast decay
+
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.02);
+        osc2.stop(now + 0.02);
+
+        osc1.onended = () => {
+            osc1.disconnect();
+            osc2.disconnect();
+            filter.disconnect();
+            gain.disconnect();
+        };
+    } catch (e) {
+        // Silent fail
+    }
+
     if (window.Android && typeof window.Android.playTickSound === 'function') {
         window.Android.playTickSound();
     }

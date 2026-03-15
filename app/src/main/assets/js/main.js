@@ -3,9 +3,13 @@ import { setTheme, setLanguage } from './theme.js';
 import { showMessage, startTimer, stopTimer, createDial, setDialValue, updateFlashUI } from './ui.js';
 import { handleReciprocityCalculate, handleDofCalculate, handleFlashCalculate } from './calculator.js';
 import { debouncedSaveState, loadState, confirmSaveCustomFilm, confirmDeleteFilm, openSaveModal, closeSaveModal, openDeleteModal, closeDeleteModal } from './state.js';
-import { cleanNumericInput, triggerHaptic } from './utils.js';
+import { cleanNumericInput, triggerHaptic, playTick, resumeAudioContext } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Resume audio context on any user interaction
+    ['mousedown', 'touchstart', 'click'].forEach(evt => {
+        document.addEventListener(evt, resumeAudioContext, { once: true, passive: true });
+    });
 
     // --- GLOBAL STATE & APP DATA ---
     const appData = {
@@ -385,12 +389,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Stepper buttons
-        document.getElementById('main-content').addEventListener('click', function (e) {
+        dom.mainContent.addEventListener('click', function (e) {
             const target = e.target.closest('.stepper-btn');
             if (!target) return;
 
             if (target.classList.contains('stepper-btn')) {
                 triggerHaptic(15);
+                playTick(); // Play sound effect
                 const inputId = target.dataset.target;
                 const step = parseFloat(target.dataset.step);
                 const inputEl = document.getElementById(inputId);

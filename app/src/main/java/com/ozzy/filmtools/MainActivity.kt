@@ -99,10 +99,13 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun playTickSound() {
             if (isSoundLoaded) {
-                runOnUiThread {
-                    // Play sound: leftVolume, rightVolume, priority, loop, rate
-                    soundPool.play(tickSoundId, 0.4f, 0.4f, 1, 0, 1.0f)
+                // Play sound: leftVolume, rightVolume, priority, loop, rate
+                val result = soundPool.play(tickSoundId, 0.8f, 0.8f, 1, 0, 1.0f)
+                if (result == 0) {
+                    android.util.Log.e("FilmTools", "SoundPool.play failed (returned 0)")
                 }
+            } else {
+                android.util.Log.w("FilmTools", "playTickSound called but sound not loaded yet")
             }
         }
     }
@@ -110,23 +113,26 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        android.util.Log.d("FilmTools", "MainActivity onCreate")
 
         // --- 初始化 SoundPool ---
         val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_GAME) // Best for low-latency feedback
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         soundPool = SoundPool.Builder()
-            .setMaxStreams(3)
+            .setMaxStreams(10) // More streams for fast scrolling
             .setAudioAttributes(audioAttributes)
             .build()
             
         soundPool.setOnLoadCompleteListener { _, sampleId, status ->
-            if (status == 0 && sampleId == tickSoundId) {
+            android.util.Log.d("FilmTools", "Sound loaded: sampleId=$sampleId, status=$status")
+            if (status == 0) {
                 isSoundLoaded = true
             }
         }
         tickSoundId = soundPool.load(this, R.raw.tick, 1)
+        android.util.Log.d("FilmTools", "Sound load requested: tickSoundId=$tickSoundId")
 
         requestNotificationPermission()
 

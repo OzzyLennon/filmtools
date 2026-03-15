@@ -301,44 +301,42 @@ export function createDial(containerId, inputId, originalValues, dom, prefix = '
     });
 
     // Observer for "active" item (which one is in the center)
+    let lastTickIndex = -1;
+    const itemWidth = 60; // From CSS .dial-item flex: 0 0 60px
+
     const updateActiveItem = () => {
-        const containerCenter = container.scrollLeft + (container.clientWidth / 2);
-        let closestItem = items[0];
-        let minDistance = Infinity;
+        const index = Math.round(container.scrollLeft / itemWidth);
+        const safeIndex = Math.max(0, Math.min(index, items.length - 1));
+        const closestItem = items[safeIndex];
 
-        items.forEach(item => {
-            // center position of the item relative to scroll bounds
-            const itemCenter = item.offsetLeft + (item.clientWidth / 2);
-            const distance = Math.abs(itemCenter - containerCenter);
+        if (lastTickIndex !== safeIndex) {
+            // Update visual active state
+            items.forEach(i => i.classList.remove('active'));
+            closestItem.classList.add('active');
 
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestItem = item;
+            const newValue = closestItem.dataset.value;
+            if (inputEl.value !== newValue) {
+                inputEl.value = newValue;
+                inputEl.dispatchEvent(new Event('input', { bubbles: true })); // Trigger saves
+                triggerHaptic(5); // Very light tick feeling like a physical gear
+                playTick(); // Play tactile sound feedback
+                console.log(`Dial tick: index=${safeIndex}, value=${newValue}`);
             }
-        });
-
-        items.forEach(i => i.classList.remove('active'));
-        closestItem.classList.add('active');
-
-        const newValue = closestItem.dataset.value;
-        if (inputEl.value !== newValue) {
-            inputEl.value = newValue;
-            inputEl.dispatchEvent(new Event('input', { bubbles: true })); // Trigger saves
-            triggerHaptic(5); // Very light tick feeling like a physical gear
-            playTick(); // Play tactile sound feedback
+            lastTickIndex = safeIndex;
         }
     };
 
-    // Scroll listener with small debounce
-    let isScrolling;
+    // Scroll listener with direct update for sound, RAF for visuals
     container.addEventListener('scroll', () => {
-        window.cancelAnimationFrame(isScrolling);
-        isScrolling = window.requestAnimationFrame(updateActiveItem);
+        // Direct call for more responsive sound
+        updateActiveItem();
     }, { passive: true });
 
     // Initial positioning based on input value if set
     setTimeout(() => {
-        setDialValue(containerId, inputId, inputEl.value || values[Math.floor(values.length / 2)]);
+        const initialValue = inputEl.value || (typeof values[0] === 'object' ? values[0].value : values[0]);
+        setDialValue(containerId, inputId, initialValue);
+        lastTickIndex = Math.round(container.scrollLeft / itemWidth);
     }, 100);
 }
 
