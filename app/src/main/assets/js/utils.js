@@ -25,6 +25,12 @@ export function triggerHaptic(duration = 15) {
     }
 }
 
+export function playTick() {
+    if (window.Android && typeof window.Android.playTickSound === 'function') {
+        window.Android.playTickSound();
+    }
+}
+
 export function cleanNumericInput(e) {
     const input = e.target;
     const selectionStart = input.selectionStart;

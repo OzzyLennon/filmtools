@@ -38,7 +38,7 @@
             </div>
         </header>
 
-        <div id="main-content" style="visibility: hidden; padding-bottom: max(1rem, env(safe-area-inset-bottom));"
+        <div id="main-content" style="opacity: 0; transition: opacity 0.8s ease-in-out; padding-bottom: max(1rem, env(safe-area-inset-bottom));"
             class="flex-1 overflow-y-auto px-4">
             <div class="flex mb-4 p-1 rounded-full bg-[color-mix(in_srgb,var(--bg-secondary)_80%,transparent)] shadow-inner"
                 role="tablist" aria-label="Calculators">
@@ -269,29 +269,29 @@
                 </div>
             </div>
         </div>
-        <div id="timer-card" class="hidden flex-col items-center justify-center p-10 timer-card card min-h-[60vh]">
-            <div class="flex flex-col items-center justify-center">
-                <div class="relative w-64 h-64 mx-auto mb-10">
-                    <svg class="w-full h-full drop-shadow-xl" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="var(--success-color)" />
-                                <stop offset="100%" stop-color="#059669" />
-                            </linearGradient>
-                        </defs>
-                        <circle class="progress-ring-bg" cx="50" cy="50" r="47"></circle>
-                        <circle id="progress-ring" class="progress-ring-fg" cx="50" cy="50" r="47"
-                            stroke="url(#timer-gradient)"></circle>
-                    </svg>
-                    <h2 id="timer-display"
-                        class="absolute inset-0 flex items-center justify-center font-normal mono-num"
-                        style="font-size: 3.5rem; letter-spacing: -0.05em; text-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                        00:00</h2>
-                </div>
+        <!-- Redesigned Liquid Darkroom Timer -->
+        <div id="timer-card" class="hidden fixed inset-0 z-[100] flex-col items-center justify-center p-0 timer-card overflow-hidden" style="background-color: var(--bg-primary);">
+            <!-- Emulated Safelight/Developer Liquid Level -->
+            <div id="liquid-bg" class="absolute bottom-0 left-0 right-0 w-full timer-liquid transition-all duration-1000 ease-linear" style="height: 100%; top: auto;"></div>
+            
+            <div class="relative z-10 flex flex-col items-center justify-center w-full h-full">
+                <!-- Massive Typography for Cine/Darkroom feel -->
+                <h2 id="timer-display" class="font-bold mono-num timer-text-blend relative"
+                    style="font-size: 24vw; line-height: 1; letter-spacing: -0.06em; margin-bottom: 2rem;">
+                    00:00
+                </h2>
+                
+                <!-- Floating Minimalist Stop Button with Progress Ring -->
                 <button id="stop-timer-btn" type="button"
-                    class="btn-ripple rounded-full px-8 py-3 font-bold text-sm tracking-widest"
-                    style="background-color: transparent; border: 1px solid color-mix(in srgb, var(--error-color) 40%, var(--border-color)); color: var(--error-color); box-shadow: var(--shadow-drop);"
-                    data-lang-key="btnStopTimer"></button>
+                    class="timer-stop-btn rounded-full flex items-center justify-center transition-transform active:scale-95"
+                    aria-label="Stop Timer">
+                    <svg class="timer-stop-progress" width="84" height="84" viewBox="0 0 84 84">
+                        <circle id="stop-progress-circle" class="progress-ring-circle" cx="42" cy="42" r="40" stroke-dasharray="252" stroke-dashoffset="252" style="opacity: 0;"></circle>
+                    </svg>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="z-10">
+                        <rect x="6" y="6" width="12" height="12" rx="1" ry="1" />
+                    </svg>
+                </button>
             </div>
         </div>
         <div id="save-modal" class="hidden modal-overlay">

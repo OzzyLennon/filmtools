@@ -284,36 +284,71 @@ input[type="number"] {
 
 
 
-.timer-card.finished {
-    box-shadow: 0 0 40px color-mix(in srgb, var(--error-color) 30%, transparent), var(--shadow-inner);
-    border-color: var(--error-color);
+
+
+/* --- Liquid Darkroom Timer --- */
+.timer-liquid {
+    background: linear-gradient(to top, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    opacity: 0.9;
+    box-shadow: 0 -4px 32px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
-.timer-card.finished .progress-ring-fg {
-    stroke: var(--error-color) !important;
-    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--error-color) 80%, transparent));
+.timer-card.finished .timer-liquid {
+    background: var(--error-color);
+    animation: flash-error 0.5s infinite alternate;
 }
 
-
-/* --- Progress Ring --- */
-.progress-ring-bg,
-.progress-ring-fg {
-    fill: none;
-    stroke-width: 3;
+@keyframes flash-error {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
 }
 
-.progress-ring-bg {
-    stroke: var(--border-color);
-    opacity: 0.5;
+.timer-text-blend {
+    color: var(--text-primary);
+    text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    /* Attempt mix-blend-mode if supported by the webview */
+    mix-blend-mode: difference;
+    color: #ffffff; /* For difference blending to work well on red/dark bg */
 }
 
-.progress-ring-fg {
-    stroke: var(--success-color);
-    stroke-linecap: round;
-    transform-origin: 50% 50%;
+/* --- Stop Button Redesign --- */
+.timer-stop-btn {
+    width: 80px;
+    height: 80px;
+    background-color: color-mix(in srgb, var(--surface-color) 30%, rgba(255, 255, 255, 0.05));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid color-mix(in srgb, var(--text-primary) 15%, transparent);
+    color: var(--text-primary);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), var(--shadow-inner);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    margin-top: 1rem;
+    position: relative; /* For ring positioning */
+}
+
+/* New Stop Button Progress Ring */
+.timer-stop-progress {
+    position: absolute;
+    inset: -2px; /* Pull outside button bounds */
+    pointer-events: none;
     transform: rotate(-90deg);
-    transition: stroke-dashoffset 1s linear;
-    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--success-color) 60%, transparent));
+}
+.progress-ring-circle {
+    fill: transparent;
+    stroke: var(--text-primary);
+    stroke-width: 4;
+    transition: opacity 0.2s;
+}
+
+.timer-stop-btn:hover {
+    background-color: color-mix(in srgb, var(--surface-color) 50%, rgba(255, 255, 255, 0.15));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), var(--shadow-inner);
+}
+
+.timer-stop-btn:active {
+    transform: translateY(2px) scale(0.95);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -550,7 +585,7 @@ input[type="number"] {
 .dial-wrapper {
     position: relative;
     width: 100%;
-    height: 60px;
+    height: 70px;
     background-color: color-mix(in srgb, var(--bg-primary) 80%, rgba(0, 0, 0, 0.2));
     border-radius: 0.75rem;
     border: 1px solid var(--border-color);
@@ -600,6 +635,7 @@ input[type="number"] {
     width: 100%;
     height: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -607,6 +643,7 @@ input[type="number"] {
     padding-right: 50%;
     box-sizing: border-box;
     align-items: center;
+    touch-action: pan-x;
 }
 
 .dial-container::-webkit-scrollbar {

@@ -255,7 +255,88 @@ document.addEventListener('DOMContentLoaded', function () {
         dom.flash.calculateBtn.addEventListener('click', () => { triggerHaptic(20); handleFlashCalculate(dom, appData, showMessage); });
 
         // Timer
-        dom.timer.stopBtn.addEventListener('click', () => stopTimer(dom, appData));
+        // Long Press to Stop Timer
+        let stopPressTimer = null;
+        let stopAnimation = null;
+        let stopRingAnimation = null;
+
+        const startStopPress = () => {
+            triggerHaptic(20);
+            
+            const ring = document.getElementById('stop-progress-circle');
+            
+            stopAnimation = anime({
+                targets: dom.timer.stopBtn,
+                scale: 0.85,
+                duration: 1000,
+                easing: 'linear'
+            });
+            
+            if (ring) {
+                // Circumference is 2 * pi * r = 2 * 3.14159 * 40 ≈ 251.3
+                // Using 252 to ensure it is completely closed/hidden at rest
+                ring.style.opacity = '1';
+                stopRingAnimation = anime({
+                    targets: ring,
+                    strokeDashoffset: [252, 0],
+                    duration: 1000,
+                    easing: 'linear'
+                });
+            }
+
+            stopPressTimer = setTimeout(() => {
+                triggerHaptic(200);
+                stopTimer(dom, appData);
+                resetStopPress(true);
+            }, 1000);
+        };
+
+        const resetStopPress = (isComplete = false) => {
+            if (stopPressTimer) clearTimeout(stopPressTimer);
+            if (stopAnimation) stopAnimation.pause();
+            if (stopRingAnimation) stopRingAnimation.pause();
+            
+            const ring = document.getElementById('stop-progress-circle');
+
+            anime({
+                targets: dom.timer.stopBtn,
+                scale: 1,
+                duration: 300,
+                easing: 'easeOutElastic(1, .8)'
+            });
+            
+            if (ring && !isComplete) {
+                // If user released early, "rewind" the progress 
+                anime({
+                    targets: ring,
+                    strokeDashoffset: 252,
+                    opacity: 0,
+                    duration: 300,
+                    easing: 'easeOutQuad'
+                });
+                
+                // Optional haptic click to indicate it failed
+                triggerHaptic(10);
+            } else if (ring && isComplete) {
+                ring.style.opacity = '0';
+                ring.style.strokeDashoffset = '252';
+            }
+        };
+
+        const attachPressEvent = (el, type, handler) => {
+            el.addEventListener(type, (e) => {
+                // Ignore right clicks
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                // e.preventDefault(); // removed to let ripple effect work
+                handler(e);
+            }, { passive: false });
+        };
+
+        attachPressEvent(dom.timer.stopBtn, 'mousedown', startStopPress);
+        attachPressEvent(dom.timer.stopBtn, 'touchstart', startStopPress);
+        attachPressEvent(dom.timer.stopBtn, 'mouseup', resetStopPress);
+        attachPressEvent(dom.timer.stopBtn, 'mouseleave', resetStopPress);
+        attachPressEvent(dom.timer.stopBtn, 'touchend', resetStopPress);
 
         // Modals
         dom.reciprocity.saveBtn.addEventListener('click', () => openSaveModal(dom, appData, showMessage));
@@ -365,6 +446,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Bind all event listeners
         initializeEventListeners();
+
+        // Reveal the main content smoothly
+        requestAnimationFrame(() => {
+            if (dom.mainContent) {
+                dom.mainContent.style.opacity = '1';
+            }
+        });
     }
 
 
@@ -392,8 +480,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } catch (e) {
                 console.error("Fatal error during initialization:", e);
-                console.error("Received data that caused error:", window.appDataString);
-                document.body.innerHTML = `<div style="text-align: center; padding: 20px; font-family: sans-serif; color: #E6EDF3;"><h3>Application Error</h3><p>Could not process application data.</p><p style="color: #8B949E; font-size: small;">Error: ${e.message}</p></div>`;
+                const errorEl = document.getElementById('fatal-error');
+                if (errorEl) {
+                    errorEl.classList.remove('hidden');
+                    errorEl.classList.add('flex');
+                } else {
+                    document.body.innerHTML = `<div style="text-align: center; padding: 20px; color: red;"><h3>Initialization Error</h3><p>${e.message}</p></div>`;
+                }
             }
         } else {
             // If data is not yet available, wait and try again

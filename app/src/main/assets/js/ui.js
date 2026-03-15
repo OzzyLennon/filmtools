@@ -1,6 +1,6 @@
 // assets/js/ui.js
 // import anime from 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.es.js'; // <--- 删除这一行
-import { formatTime, playBeep, triggerHaptic } from './utils.js';
+import { formatTime, playBeep, triggerHaptic, playTick } from './utils.js';
 
 export function showMessage(area, type, titleKey, content, finalTime, appData, startTimer) {
     area.hidden = false;
@@ -70,7 +70,13 @@ export function showMessage(area, type, titleKey, content, finalTime, appData, s
                     contentEl.style.display = 'block';
                     anime({
                         targets: contentEl, opacity: [0, 1], translateY: [10, 0], duration: 400, easing: 'easeOutCubic',
-                        complete: () => bindResultActions(finalTime, langData, content)
+                        complete: () => {
+                            bindResultActions(finalTime, langData, content);
+                            // Auto scroll to make result fully visible
+                            setTimeout(() => {
+                                area.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }
                     });
                 }
             });
@@ -131,31 +137,32 @@ export function startTimer(totalSeconds, dom, appData) {
             // Show and animate in timer card
             dom.timer.card.classList.remove('hidden', 'finished');
             document.body.classList.remove('flashing');
+            
+            // Hide bottom nav for immersion
+            if (dom.nav) {
+                dom.nav.classList.add('hidden');
+            }
 
             dom.timer.card.style.transform = ''; // Reset
             anime({
                 targets: dom.timer.card,
-                translateY: [100, 0],
                 opacity: [0, 1],
-                scale: [0.9, 1],
                 duration: 800,
-                easing: 'spring(1, 80, 10, 0)'
+                easing: 'easeOutExpo'
             });
         }
     });
 
-    const progressRing = dom.timer.progressRing;
-    const radius = progressRing.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-    progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
-    progressRing.style.strokeDashoffset = circumference;
+    const liquidBg = document.getElementById('liquid-bg');
 
     const setProgress = (percent) => {
-        const offset = circumference - percent / 100 * circumference;
-        progressRing.style.strokeDashoffset = offset;
+        if (liquidBg) {
+            liquidBg.style.height = `${percent}%`;
+        }
     };
 
     let remaining = Math.round(totalSeconds);
+    const targetEndTimeMs = Date.now() + (remaining * 1000); // Fixed absolute end time
     setProgress(100);
     dom.timer.display.textContent = formatTime(remaining, null, false);
 
@@ -163,7 +170,9 @@ export function startTimer(totalSeconds, dom, appData) {
     if (appData.alarmInterval) clearInterval(appData.alarmInterval);
 
     appData.timerInterval = setInterval(() => {
-        remaining--;
+        const now = Date.now();
+        remaining = Math.max(0, Math.round((targetEndTimeMs - now) / 1000));
+        
         const percent = (remaining / totalSeconds) * 100;
         setProgress(percent);
         const formattedTime = formatTime(remaining, null, false);
@@ -176,7 +185,7 @@ export function startTimer(totalSeconds, dom, appData) {
             dom.timer.display.textContent = langData.timerComplete;
             document.title = `✅ ${langData.timerComplete}`;
             dom.timer.card.classList.add('finished');
-            progressRing.style.strokeDashoffset = 0;
+            setProgress(0);
             appData.alarmInterval = setInterval(() => {
                 playBeep();
                 triggerHaptic(500);
@@ -205,14 +214,16 @@ export function stopTimer(dom, appData) {
     // Animate out timer
     anime({
         targets: dom.timer.card,
-        translateY: [0, 100],
         opacity: [1, 0],
-        scale: [1, 0.9],
         duration: 300,
         easing: 'easeInQuad',
         complete: () => {
             dom.timer.card.classList.add('hidden');
-            dom.timer.card.style.transform = ''; // Reset
+            
+            // Show bottom nav again
+            if (dom.nav) {
+                dom.nav.classList.remove('hidden');
+            }
 
             // Restore main content
             dom.mainContent.classList.remove('hidden');
@@ -255,15 +266,14 @@ export function createQuickChips(containerId, targetInputId, values, dom, prefix
     });
 }
 
-export function createDial(containerId, inputId, values, dom, prefix = '') {
+export function createDial(containerId, inputId, originalValues, dom, prefix = '') {
     const container = document.getElementById(containerId);
     const inputEl = document.getElementById(inputId);
     if (!container || !inputEl) return;
 
     container.innerHTML = '';
 
-    // Add spacer logic so the first and last items can scroll to the center.
-    // CSS padding handles this now (`padding-left/right: 50%`) but we need to ensure the calculation works.
+    const values = originalValues;
 
     const items = [];
     values.forEach(val => {
@@ -315,6 +325,7 @@ export function createDial(containerId, inputId, values, dom, prefix = '') {
             inputEl.value = newValue;
             inputEl.dispatchEvent(new Event('input', { bubbles: true })); // Trigger saves
             triggerHaptic(5); // Very light tick feeling like a physical gear
+            playTick(); // Play tactile sound feedback
         }
     };
 
@@ -337,8 +348,8 @@ export function setDialValue(containerId, inputId, value) {
     if (!container || !inputEl) return;
 
     const items = Array.from(container.querySelectorAll('.dial-item'));
-    const targetItem = items.find(i => i.dataset.value == value);
-
+    const targetItem = items.find(i => String(i.dataset.value) === String(value));
+    
     if (targetItem) {
         // Scroll to center this item
         container.scrollTo({ left: targetItem.offsetLeft - (container.clientWidth / 2) + (targetItem.clientWidth / 2), behavior: 'auto' });
