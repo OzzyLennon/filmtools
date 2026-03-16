@@ -96,13 +96,31 @@ export function handleReciprocityCalculate(dom, appData, showMessage, startTimer
         tc = calculateByPoints(tbr, film.points);
         // Fallback or adjustment if calculation goes wild
         if (tc > 360000) tc = -1; // Cap at 100 hours
+    } else if (film.rules && film.rules.length > 0) {
+        // 规则引擎：按条件匹配公式计算
+        const tm = tbr;
+        let matched = false;
+        for (const rule of film.rules) {
+            try {
+                if (eval(rule.condition)) {
+                    tc = eval(rule.formula);
+                    matched = true;
+                    break;
+                }
+            } catch (e) {
+                console.error('Rule evaluation error:', e);
+            }
+        }
+        if (!matched) {
+            tc = tbr; // 无匹配规则，不补偿
+        }
     } else if (pVal) {
         tc = tbr > 1 ? Math.pow(tbr, pVal) : tbr;
     } else {
         tc = tbr;
     }
 
-    if (!isFinite(tc) || tc < 0) {
+    if (!isFinite(tc) || tc < 0 || tc === -1) {
         showMessage(dom.reciprocity.messageArea, 'error', 'errorOutOfRange', null, null, appData);
     } else if (tc <= tbr * 1.05) { // Relaxed to 5% buffer for "no comp"
         showMessage(dom.reciprocity.messageArea, 'info', 'infoNoCompensation', null, null, appData);
@@ -125,7 +143,9 @@ export function handleDofCalculate(dom, appData, showMessage) {
 
     const H = (fLen ** 2) / (apt * coc) + fLen;
     const near = (H * dist) / (H + (dist - fLen));
-    const far = (H * dist) / (H - (dist - fLen));
+    // 当对焦距离 >= 超焦距时，远景应为无穷大
+    const isFarInfinite = dist >= H;
+    const far = isFarInfinite ? Infinity : (H * dist) / (H - (dist - fLen));
     const langData = appData.translations[appData.currentLanguage];
 
     const resultHtml = `<div class="space-y-3 text-lg">
