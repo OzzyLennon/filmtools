@@ -31,3 +31,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+.trae/specs/add-readme/tasks.md
+.trae/specs/add-readme/checklist.md
+.trae/specs/add-readme/spec.md

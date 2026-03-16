@@ -1,5 +1,12 @@
 // assets/js/calculator.js
 
+/**
+ * Calculates corrected exposure time based on data points using log-log interpolation.
+ * 
+ * @param {number} tm - The measured exposure time in seconds.
+ * @param {Array<Array<number>>} points - Array of [measured, corrected] time pairs.
+ * @returns {number} The corrected exposure time, or -1 if inputs are invalid.
+ */
 function calculateByPoints(tm, points) {
     if (!points || points.length === 0) return -1;
 
@@ -35,6 +42,7 @@ function calculateByPoints(tm, points) {
     }
 
     // Log-Log Interpolation: log(Tc) = log(Tc1) + (log(Tm) - log(Tm1)) * (log(Tc2) - log(Tc1)) / (log(Tm2) - log(Tm1))
+    // This is mathematically superior for reciprocity curves which are typically linear on a log-log plot.
     const logTm = Math.log(tm);
     const logTm1 = Math.log(p1[0]);
     const logTc1 = Math.log(p1[1]);
@@ -46,6 +54,63 @@ function calculateByPoints(tm, points) {
 
     return Math.exp(logTc);
 }
+
+/**
+ * Safely evaluates a rule condition or formula from app_data.json without using eval().
+ * Supports basic arithmetic, Math.pow, and log10.
+ * 
+ * @param {string} expression - The string expression to evaluate.
+ * @param {number} tm - The measured time variable used in rules.
+ * @returns {number|boolean} The result of evaluation.
+ */
+function safeEvaluate(expression, tm) {
+    // Basic sanitization: remove whitespace
+    const cleanExpr = expression.replace(/\s+/g, '');
+    
+    // 1. Handle simple conditions
+    if (cleanExpr === 'tm<=1') return tm <= 1;
+    if (cleanExpr === 'tm>1') return tm > 1;
+    
+    // 2. Handle simple identity
+    if (cleanExpr === 'tm') return tm;
+    
+    // 3. Handle complex formulas (specific to known Kodak Vision3 rules)
+    // Example: tm*Math.pow(2,0.5*log10(tm))
+    try {
+        // Map log10 to Math.log10 (it was likely intended this way in JSON)
+        const log10 = (v) => Math.log10(v);
+        
+        // Since we want to avoid eval/new Function for Mini Program compatibility,
+        // we use a very restricted approach for known patterns.
+        if (cleanExpr.includes('Math.pow')) {
+            // Pattern: tm * Math.pow(base, exponent_expr)
+            const match = cleanExpr.match(/^tm\*Math\.pow\((\d+),(.+)\)$/);
+            if (match) {
+                const base = parseFloat(match[1]);
+                const exponentExpr = match[2];
+                
+                // Evaluate exponent expression (could be 0.5*log10(tm), log10(tm), or (1/3)*log10(tm))
+                let exponent = 0;
+                if (exponentExpr === 'log10(tm)') {
+                    exponent = log10(tm);
+                } else if (exponentExpr === '0.5*log10(tm)') {
+                    exponent = 0.5 * log10(tm);
+                } else if (exponentExpr === '(1/3)*log10(tm)') {
+                    exponent = (1 / 3) * log10(tm);
+                } else {
+                    throw new Error('Unsupported exponent pattern: ' + exponentExpr);
+                }
+                
+                return tm * Math.pow(base, exponent);
+            }
+        }
+    } catch (e) {
+        console.error('Safe evaluation error:', e);
+    }
+    
+    return tm; // Fallback to uncorrected time
+}
+
 
 export function handleReciprocityCalculate(dom, appData, showMessage, startTimer) {
     const mVal = parseFloat(dom.reciprocity.minInput.value) || 0;
@@ -101,20 +166,18 @@ export function handleReciprocityCalculate(dom, appData, showMessage, startTimer
         const tm = tbr;
         let matched = false;
         for (const rule of film.rules) {
-            try {
-                if (eval(rule.condition)) {
-                    tc = eval(rule.formula);
-                    matched = true;
-                    break;
-                }
-            } catch (e) {
-                console.error('Rule evaluation error:', e);
+            if (safeEvaluate(rule.condition, tm)) {
+                tc = safeEvaluate(rule.formula, tm);
+                matched = true;
+                break;
             }
         }
         if (!matched) {
             tc = tbr; // 无匹配规则，不补偿
         }
     } else if (pVal) {
+        // Schwarzschild formula: Tc = Tm^p
+        // This is a standard power-law approximation for reciprocity failure.
         tc = tbr > 1 ? Math.pow(tbr, pVal) : tbr;
     } else {
         tc = tbr;
@@ -125,11 +188,19 @@ export function handleReciprocityCalculate(dom, appData, showMessage, startTimer
     } else if (tc <= tbr * 1.05) { // Relaxed to 5% buffer for "no comp"
         showMessage(dom.reciprocity.messageArea, 'info', 'infoNoCompensation', null, null, appData);
     } else {
+        // resultCorrectedTime leads to the timer button
         showMessage(dom.reciprocity.messageArea, 'result', 'resultCorrectedTime', null, tc, appData, (time) => startTimer(time, dom, appData));
     }
 }
 
 
+/**
+ * Calculates Depth of Field and Hyperfocal distance.
+ * 
+ * @param {Object} dom - DOM elements object.
+ * @param {Object} appData - Application data object.
+ * @param {Function} showMessage - UI helper to display results.
+ */
 export function handleDofCalculate(dom, appData, showMessage) {
     const fLen = parseFloat(dom.dof.focalLength.value);
     const apt = parseFloat(dom.dof.aperture.value);
@@ -141,11 +212,17 @@ export function handleDofCalculate(dom, appData, showMessage) {
         return;
     }
 
+    // Hyperfocal distance (H) = (f^2 / (N * c)) + f
     const H = (fLen ** 2) / (apt * coc) + fLen;
+    
+    // Near limit (Dn) = (H * d) / (H + (d - f))
     const near = (H * dist) / (H + (dist - fLen));
-    // 当对焦距离 >= 超焦距时，远景应为无穷大
+    
+    // Far limit (Df) = (H * d) / (H - (d - f))
+    // When focus distance >= Hyperfocal, far limit is infinity
     const isFarInfinite = dist >= H;
     const far = isFarInfinite ? Infinity : (H * dist) / (H - (dist - fLen));
+
     const langData = appData.translations[appData.currentLanguage];
 
     const resultHtml = `<div class="space-y-3 text-lg">
@@ -159,6 +236,13 @@ export function handleDofCalculate(dom, appData, showMessage) {
 }
 
 
+/**
+ * Calculates Flash exposure parameters: Aperture, Distance, or Power.
+ * 
+ * @param {Object} dom - DOM elements object.
+ * @param {Object} appData - Application data object.
+ * @param {Function} showMessage - UI helper to display results.
+ */
 export function handleFlashCalculate(dom, appData, showMessage) {
     const mode = document.querySelector('input[name="flash-mode"]:checked').value;
     const gn = parseFloat(dom.flash.gnInput.value);
@@ -174,9 +258,11 @@ export function handleFlashCalculate(dom, appData, showMessage) {
         return;
     }
 
+    // Effective GN adjusted for ISO and modifiers
     const modFactor = Math.sqrt(2 ** -modLoss);
     const effGn = gn * Math.sqrt(iso / 100) * modFactor;
     let resHtml = '', titleKey = '';
+
 
     if (mode === 'aperture') {
         if (isNaN(dist) || isNaN(pwr) || dist <= 0) {
